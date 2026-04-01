@@ -11,8 +11,6 @@ from src.loaders.base_loader import BaseLoader
 __all__ = ["MySQLLoader"]
 log = logging.getLogger(__name__)
 
-_MYSQL_DEFAULT_PORT = 3306
-
 
 class MySQLLoader(BaseLoader):
 
@@ -21,7 +19,7 @@ class MySQLLoader(BaseLoader):
         self._cur = None
 
     def connect(self) -> None:
-        port = db_cfg.port if db_cfg.port != 5432 else _MYSQL_DEFAULT_PORT
+        port = db_cfg.mysql_port
         try:
             self._conn = mysql.connector.connect(
                 host=db_cfg.host,

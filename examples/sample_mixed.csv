@@ -1,0 +1,4 @@
+type,query,sql,expected_keywords,retrieved,relevant,k,answer,reference_answer
+retrieval,What is the refund policy?,,,"doc_refund_v2,doc_shipping,doc_refund_v1","doc_refund_v1,doc_refund_v2",3,,
+sql,Total revenue in 2024,"SELECT SUM(amount) FROM sales WHERE year = 2024","SELECT,SUM,FROM,WHERE",,,,,
+text,Summarize the support policy,,,,,,Support is available on weekdays and critical issues are prioritized. Our team handles tickets within 24 hours during business days.,Support is available during weekdays. Urgent issues are prioritized and handled within 24 hours.

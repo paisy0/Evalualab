@@ -20,6 +20,7 @@ class DBConfig:
     user: str = field(default_factory=lambda: os.getenv("DB_USER", ""))
     password: str = field(default_factory=lambda: os.getenv("DB_PASSWORD", ""))
     sqlite_path: str = field(default_factory=lambda: os.getenv("DB_SQLITE_PATH", "").strip())
+    mysql_port: int = field(default_factory=lambda: int(os.getenv("DB_MYSQL_PORT", "3306")))
     timeout: int = 10
 
     def __repr__(self) -> str:

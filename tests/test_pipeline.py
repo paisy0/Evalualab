@@ -114,7 +114,7 @@ def test_load_from_db_raises_on_empty_retrieval_value(monkeypatch):
         main._load_from_db("postgres")
 
 
-def test_load_from_db_raises_on_missing_sql_keywords_mapping(monkeypatch):
+def test_load_from_db_validates_sql_without_keywords_mapping(monkeypatch):
     monkeypatch.setenv("EVAL_SOURCE_QUERY", "SELECT * FROM real_eval_log")
     monkeypatch.setenv("EVAL_COL_QUERY", "question_col")
     monkeypatch.setenv("EVAL_COL_TYPE", "type_col")
@@ -130,11 +130,12 @@ def test_load_from_db_raises_on_missing_sql_keywords_mapping(monkeypatch):
 
     monkeypatch.setattr(src.loaders, "get_loader", lambda db_type: _Loader(rows))
 
-    with pytest.raises(ConfigurationError, match="Missing mapping: EVAL_COL_KEYWORDS"):
-        main._load_from_db("postgres")
+    # Should NOT raise — keywords are optional now
+    cases = main._load_from_db("postgres")
+    assert len(cases) == 1
 
 
-def test_load_from_db_raises_on_missing_text_reference_mapping(monkeypatch):
+def test_load_from_db_validates_text_without_reference_mapping(monkeypatch):
     monkeypatch.setenv("EVAL_SOURCE_QUERY", "SELECT * FROM real_eval_log")
     monkeypatch.setenv("EVAL_COL_QUERY", "question_col")
     monkeypatch.setenv("EVAL_COL_TYPE", "type_col")
@@ -152,8 +153,9 @@ def test_load_from_db_raises_on_missing_text_reference_mapping(monkeypatch):
 
     monkeypatch.setattr(src.loaders, "get_loader", lambda db_type: _Loader(rows))
 
-    with pytest.raises(ConfigurationError, match="Missing mapping: EVAL_COL_REFERENCE_ANSWER"):
-        main._load_from_db("postgres")
+    # Should NOT raise — reference_answer is optional now
+    cases = main._load_from_db("postgres")
+    assert len(cases) == 1
 
 
 def test_evaluate_raises_on_missing_sql_value(monkeypatch):
@@ -171,34 +173,36 @@ def test_evaluate_raises_on_missing_sql_value(monkeypatch):
         )
 
 
-def test_evaluate_raises_on_missing_sql_keywords(monkeypatch):
+def test_evaluate_passes_sql_without_keywords(monkeypatch):
     monkeypatch.setattr(main, "run_report", lambda results, save=True: None)
 
-    with pytest.raises(ConfigurationError, match="Missing field: expected_keywords"):
-        main._evaluate(
-            [
-                {
-                    "type": "sql",
-                    "query": "q",
-                    "sql": "SELECT 1",
-                }
-            ],
-            save=False,
-        )
+    results = main._evaluate(
+        [
+            {
+                "type": "sql",
+                "query": "q",
+                "sql": "SELECT 1",
+            }
+        ],
+        save=False,
+    )
+    assert len(results) == 1
+    assert results[0]["passed"] is True
 
 
-def test_evaluate_raises_on_missing_text_reference_answer(monkeypatch):
+def test_evaluate_passes_text_without_reference_answer(monkeypatch):
     monkeypatch.setattr(main, "run_report", lambda results, save=True: None)
 
-    with pytest.raises(ConfigurationError, match="Missing field: reference_answer"):
-        main._evaluate(
-            [
-                {
-                    "type": "text",
-                    "query": "q",
-                    "answer": "answer text",
-                    "expected_keywords": ["answer"],
-                }
-            ],
-            save=False,
-        )
+    results = main._evaluate(
+        [
+            {
+                "type": "text",
+                "query": "q",
+                "answer": "this answer is long enough to pass the word count threshold easily here",
+                "expected_keywords": ["answer"],
+            }
+        ],
+        save=False,
+    )
+    assert len(results) == 1
+    assert results[0]["consistency_checked"] is False

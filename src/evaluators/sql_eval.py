@@ -72,6 +72,10 @@ def run_sql_eval(
     syntax = check_sql_syntax(sql)
     keywords = check_sql_keywords(sql, expected_keywords or [])
 
+    passed = syntax["valid"]
+    if keywords["checked"]:
+        passed = passed and keywords["all_present"]
+
     return {
         "query": query,
         "sql": sql,
@@ -80,5 +84,5 @@ def run_sql_eval(
         "keywords_checked": keywords["checked"],
         "keywords_ok": keywords["all_present"],
         "missing_keywords": keywords["missing"],
-        "passed": syntax["valid"] and keywords["checked"] and keywords["all_present"],
+        "passed": passed,
     }

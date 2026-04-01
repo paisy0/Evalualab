@@ -43,7 +43,7 @@ def test_sql_eval_matches_keywords_as_tokens():
     assert result["missing_keywords"] == ["OR"]
 
 
-def test_sql_eval_requires_keywords_for_pass():
+def test_sql_eval_passes_without_keywords_if_syntax_valid():
     result = run_sql_eval(
         query="q",
         sql="SELECT 1",
@@ -52,7 +52,7 @@ def test_sql_eval_requires_keywords_for_pass():
     assert result["syntax_valid"] is True
     assert result["keywords_checked"] is False
     assert result["keywords_ok"] is False
-    assert result["passed"] is False
+    assert result["passed"] is True
 
 
 def test_text_eval_uses_reference_answer_when_present():
@@ -69,16 +69,16 @@ def test_text_eval_uses_reference_answer_when_present():
     assert result["passed"] is True
 
 
-def test_text_eval_requires_keywords_and_reference_for_pass():
+def test_text_eval_passes_on_length_alone_without_extras():
     result = run_text_eval(
         query="q",
-        answer="this answer is long enough to pass length",
+        answer="this answer is long enough to pass length check with more than ten words here",
         min_words=0,
     )
 
     assert result["keywords_checked"] is False
     assert result["consistency_checked"] is False
-    assert result["passed"] is False
+    assert result["passed"] is True
 
 
 def test_text_eval_matches_keywords_as_tokens():

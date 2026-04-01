@@ -13,9 +13,8 @@ __all__ = ["run_report"]
 log = logging.getLogger(__name__)
 
 
-def _make_path(ext: str, directory: Path = REPORTS_DIR) -> Path:
+def _make_path(ext: str, ts: str, directory: Path = REPORTS_DIR) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     return directory / f"eval_results_{ts}.{ext}"
 
 
@@ -41,16 +40,52 @@ def _print_dashboard(results: list[dict]) -> None:
     failed = total - passed
     rate = passed / total if total else 0
 
+    # --- Group by eval_type ---
+    type_stats: dict[str, dict] = {}
+    for r in results:
+        et = r.get("eval_type", "unknown")
+        if et not in type_stats:
+            type_stats[et] = {"total": 0, "passed": 0}
+        type_stats[et]["total"] += 1
+        if r.get("passed") is True:
+            type_stats[et]["passed"] += 1
+
+    # --- Retrieval averages ---
+    retrieval_results = [r for r in results if r.get("eval_type") == "retrieval"]
+    avg_precision = avg_recall = avg_ndcg = None
+    if retrieval_results:
+        avg_precision = sum(r.get("precision_k", 0) for r in retrieval_results) / len(retrieval_results)
+        avg_recall = sum(r.get("recall_k", 0) for r in retrieval_results) / len(retrieval_results)
+        avg_ndcg = sum(r.get("ndcg_k", 0) for r in retrieval_results) / len(retrieval_results)
+
     print()
-    print("=" * 48)
+    print("=" * 52)
     print("  EVAL DASHBOARD")
-    print("=" * 48)
+    print("=" * 52)
     print(f"  Total   : {total}")
     print(f"  Passed  : {passed}")
     print(f"  Failed  : {failed}")
     print(f"  Rate    : {rate:.1%}")
     print(f"  Time    : {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print("=" * 48)
+    print("-" * 52)
+
+    # --- Breakdown by type ---
+    print("  Breakdown:")
+    for et, stats in sorted(type_stats.items()):
+        t_total = stats["total"]
+        t_passed = stats["passed"]
+        t_rate = t_passed / t_total if t_total else 0
+        print(f"    {et:12s} : {t_passed}/{t_total} ({t_rate:.0%})")
+
+    # --- Retrieval averages ---
+    if avg_precision is not None:
+        print("-" * 52)
+        print("  Retrieval Averages:")
+        print(f"    Precision@K : {avg_precision:.4f}")
+        print(f"    Recall@K    : {avg_recall:.4f}")
+        print(f"    NDCG@K      : {avg_ndcg:.4f}")
+
+    print("=" * 52)
 
     if failed:
         print("\n  [FAIL] Failed:")
@@ -72,8 +107,9 @@ def run_report(results: list[dict], *, save: bool = True) -> dict | None:
     if not save:
         return None
 
-    csv_path = _make_path("csv")
-    json_path = _make_path("json")
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    csv_path = _make_path("csv", ts)
+    json_path = _make_path("json", ts)
     _save_csv(results, csv_path)
     _save_json(results, json_path)
 

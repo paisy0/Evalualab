@@ -125,21 +125,18 @@ def _validate_source_row(row: dict, source) -> None:
     if eval_type == "sql":
         if not source.sql_column:
             raise ConfigurationError("Missing mapping: EVAL_COL_SQL")
-        if not source.keywords_column:
-            raise ConfigurationError("Missing mapping: EVAL_COL_KEYWORDS")
         _require_source_text(row, source.sql_column)
-        _require_source_list(row, source.keywords_column)
+        if source.keywords_column and source.keywords_column in row:
+            _require_source_list(row, source.keywords_column)
         return
     if eval_type == "text":
         if not source.answer_column:
             raise ConfigurationError("Missing mapping: EVAL_COL_ANSWER")
-        if not source.keywords_column:
-            raise ConfigurationError("Missing mapping: EVAL_COL_KEYWORDS")
-        if not source.reference_answer_column:
-            raise ConfigurationError("Missing mapping: EVAL_COL_REFERENCE_ANSWER")
         _require_source_text(row, source.answer_column)
-        _require_source_list(row, source.keywords_column)
-        _require_source_text(row, source.reference_answer_column)
+        if source.keywords_column and source.keywords_column in row:
+            _require_source_list(row, source.keywords_column)
+        if source.reference_answer_column and source.reference_answer_column in row:
+            _require_source_text(row, source.reference_answer_column)
         return
     raise UnknownEvalType(eval_type)
 
@@ -154,12 +151,9 @@ def _validate_case(case: dict) -> None:
         return
     if eval_type == "sql":
         _require_text(case, "sql")
-        _require_list(case, "expected_keywords")
         return
     if eval_type == "text":
         _require_text(case, "answer")
-        _require_list(case, "expected_keywords")
-        _require_text(case, "reference_answer")
         return
     raise UnknownEvalType(eval_type)
 

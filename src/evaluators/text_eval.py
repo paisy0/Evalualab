@@ -77,6 +77,12 @@ def run_text_eval(
     consistency_checked = consistency is not None
     consistency_ok = False if consistency is None else consistency["consistent"]
 
+    passed = ln["length_ok"]
+    if kw["checked"]:
+        passed = passed and kw["all_present"]
+    if consistency_checked:
+        passed = passed and consistency_ok
+
     return {
         "query": query,
         "keywords_checked": kw["checked"],
@@ -87,5 +93,5 @@ def run_text_eval(
         "consistency_checked": consistency_checked,
         "consistency_ok": consistency_ok,
         "consistency_score": None if consistency is None else consistency["similarity"],
-        "passed": kw["checked"] and kw["all_present"] and ln["length_ok"] and consistency_checked and consistency_ok,
+        "passed": passed,
     }
