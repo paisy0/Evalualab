@@ -1,12 +1,10 @@
 """
 Pipeline integration test — runs the full eval loop with demo data.
 
-DB bağlantısı hazır olunca:
   1. Alttaki commented bloğun yorumunu kaldır
   2. MAPPING ve LIST_COLS'u kendi DB şemana göre düzenle
   3. test_cases satırını sil
 
-Hepsi bu.
 """
 
 from __future__ import annotations
@@ -22,7 +20,7 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 
-# ── DB MODE (yorum kaldır) ────────────────────────────────────
+# ── DB────────────────────────────────────
 # from src.loaders import get_loader, normalize
 #
 # MAPPING = {
