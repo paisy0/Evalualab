@@ -1,18 +1,19 @@
 import subprocess
+import sys
+
 
 def run_test(cmd, name):
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print(f"=== {name} ===")
-    print("="*50 + "\n")
-    res = subprocess.run(cmd, capture_output=True, text=True)
-    out = res.stdout.strip()
-    err = res.stderr.strip()
-    if out:
-        print(out)
-    if err:
-        print("LOGS/ERRORS:\n" + err)
+    print("=" * 50 + "\n")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.stdout.strip():
+        print(result.stdout.strip())
+    if result.stderr.strip():
+        print(result.stderr.strip())
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+
 
 if __name__ == "__main__":
-    run_test(["python", "main.py"], "main.py")
-    run_test(["python", "-m", "tests.test_evaluators"], "test_evaluators")
-    run_test(["python", "-m", "tests.loader_testnodb"], "loader_testnodb")
+    run_test([sys.executable, "-m", "pytest", "tests", "-q"], "pytest")

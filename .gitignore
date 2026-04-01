@@ -1,14 +1,7 @@
 .env
-
-# Virtual environment 
 venv/
-
-# Python cache dosyaları 
 __pycache__/
 *.pyc
-
-# VS Code ayarları
+.pytest_cache/
 .vscode/
-
-# Eval raporları — lokal kalır
 reports/

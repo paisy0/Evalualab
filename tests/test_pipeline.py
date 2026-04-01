@@ -1,106 +1,107 @@
-"""
-Pipeline integration test — runs the full eval loop with demo data.
-
-  1. Alttaki commented bloğun yorumunu kaldır
-  2. MAPPING ve LIST_COLS'u kendi DB şemana göre düzenle
-  3. test_cases satırını sil
-
-"""
-
 from __future__ import annotations
 
-import logging
+import pytest
 
-from src.evaluators import run_retrieval_eval, run_sql_eval, run_text_eval
-from src.pipeline import run_report
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s │ %(levelname)-5s │ %(message)s",
-    datefmt="%H:%M:%S",
-)
-
-# ── DB────────────────────────────────────
-# from src.loaders import get_loader, normalize
-#
-# MAPPING = {
-#     "soru_kolonu":      "query",
-#     "cevap_kolonu":     "answer",
-#     "belgeler_kolonu":  "retrieved_docs",
-#     "ilgili_kolonu":    "relevant_docs",
-#     "sql_kolonu":       "sql",
-#     "tip_kolonu":       "type",
-#     "keyword_kolonu":   "expected_keywords",
-# }
-# LIST_COLS = ["retrieved_docs", "relevant_docs", "expected_keywords"]
-#
-# with get_loader("postgres") as db:
-#     raw = db.fetch("SELECT * FROM eval_log LIMIT 100")
-#     test_cases = normalize(raw, MAPPING, list_columns=LIST_COLS,
-#                            preserve_unmapped=True)
-# ───────────────────────────────────────────────────────────────
+import main
+import src.loaders
+from src.exceptions import ConfigurationError
 
 
-# demo data — DB gelince sil
-test_cases = [
-    {
-        "type":      "retrieval",
-        "query":     "Revenue of company A",
-        "retrieved": ["doc_1", "doc_2", "doc_3", "doc_4", "doc_5"],
-        "relevant":  ["doc_1", "doc_2", "doc_5", "doc_6"],
-        "k":         5,
-    },
-    {
-        "type":              "sql",
-        "query":             "Monthly sales total",
-        "sql":               "SELECT month, SUM(sales) FROM orders GROUP BY month",
-        "expected_keywords": ["SELECT", "GROUP BY"],
-    },
-    {
-        "type":              "sql",
-        "query":             "Get all users",
-        "sql":               "SELEC * FORM users",
-        "expected_keywords": ["SELECT"],
-    },
-    {
-        "type":              "text",
-        "query":             "Revenue of company A in January?",
-        "answer":            "Company A had revenue of 1.2M in January.",
-        "expected_keywords": ["revenue", "january"],
-    },
-    {
-        "type":              "text",
-        "query":             "Cost breakdown for Q1?",
-        "answer":            "The weather was nice.",
-        "expected_keywords": ["cost", "q1"],
-    },
-]
+class _Loader:
+    def __init__(self, rows: list[dict]) -> None:
+        self._rows = rows
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return None
+
+    def fetch(self, query: str) -> list[dict]:
+        assert query == "SELECT * FROM real_eval_log"
+        return self._rows
 
 
-# ── dispatch ───────────────────────────────────────────────────
-_HANDLERS = {
-    "retrieval": lambda c: run_retrieval_eval(
-        query=c["query"], retrieved=c["retrieved"],
-        relevant=c["relevant"], k=c.get("k", 5),
-    ),
-    "sql": lambda c: run_sql_eval(
-        query=c["query"], sql=c["sql"],
-        expected_keywords=c.get("expected_keywords"),
-    ),
-    "text": lambda c: run_text_eval(
-        query=c["query"], answer=c["answer"],
-        expected_keywords=c.get("expected_keywords"),
-    ),
-}
+def test_load_from_db_uses_env_mapping(monkeypatch):
+    monkeypatch.setenv("EVAL_SOURCE_QUERY", "SELECT * FROM real_eval_log")
+    monkeypatch.setenv("EVAL_COL_QUERY", "question_col")
+    monkeypatch.setenv("EVAL_COL_TYPE", "type_col")
+    monkeypatch.setenv("EVAL_COL_RETRIEVED", "retrieved_col")
+    monkeypatch.setenv("EVAL_COL_RELEVANT", "relevant_col")
+    monkeypatch.setenv("EVAL_COL_K", "k_col")
 
-results = []
-for case in test_cases:
-    handler = _HANDLERS.get(case.get("type"))
-    if handler is None:
-        logging.warning("unknown type '%s' → skip", case.get("type"))
-        continue
-    result = handler(case)
-    result["eval_type"] = case["type"]
-    results.append(result)
+    rows = [
+        {
+            "question_col": "q",
+            "type_col": "retrieval",
+            "retrieved_col": "doc_1,doc_2",
+            "relevant_col": '["doc_1"]',
+            "k_col": "3",
+        }
+    ]
 
-run_report(results, save=True)
+    monkeypatch.setattr(src.loaders, "get_loader", lambda db_type: _Loader(rows))
+
+    [case] = main._load_from_db("postgres")
+
+    assert case["query"] == "q"
+    assert case["type"] == "retrieval"
+    assert case["retrieved"] == ["doc_1", "doc_2"]
+    assert case["relevant"] == ["doc_1"]
+    assert case["k"] == "3"
+
+
+def test_evaluate_dispatches_normalized_retrieval(monkeypatch):
+    monkeypatch.setattr(main, "run_report", lambda results, save=True: None)
+
+    results = main._evaluate(
+        [
+            {
+                "type": "retrieval",
+                "query": "q",
+                "retrieved": ["doc_1"],
+                "relevant": ["doc_1"],
+                "k": "1",
+            }
+        ],
+        save=False,
+    )
+
+    assert len(results) == 1
+    assert results[0]["passed"] is True
+
+
+def test_load_from_db_raises_on_missing_required_column(monkeypatch):
+    monkeypatch.setenv("EVAL_SOURCE_QUERY", "SELECT * FROM real_eval_log")
+    monkeypatch.setenv("EVAL_COL_QUERY", "question_col")
+    monkeypatch.setenv("EVAL_COL_TYPE", "type_col")
+    monkeypatch.setenv("EVAL_COL_RETRIEVED", "retrieved_col")
+    monkeypatch.setenv("EVAL_COL_RELEVANT", "relevant_col")
+
+    rows = [
+        {
+            "question_col": "q",
+            "type_col": "retrieval",
+            "relevant_col": '["doc_1"]',
+        }
+    ]
+
+    monkeypatch.setattr(src.loaders, "get_loader", lambda db_type: _Loader(rows))
+
+    with pytest.raises(ConfigurationError, match="Missing column: retrieved_col"):
+        main._load_from_db("postgres")
+
+
+def test_evaluate_raises_on_missing_sql_value(monkeypatch):
+    monkeypatch.setattr(main, "run_report", lambda results, save=True: None)
+
+    with pytest.raises(ConfigurationError, match="Missing field: sql"):
+        main._evaluate(
+            [
+                {
+                    "type": "sql",
+                    "query": "q",
+                }
+            ],
+            save=False,
+        )

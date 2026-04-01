@@ -34,5 +34,47 @@ class EvalThresholds:
     consistency_min: float = 0.80
 
 
+@dataclass(frozen=True)
+class EvalSourceConfig:
+    query: str = field(default_factory=lambda: os.getenv("EVAL_SOURCE_QUERY", "").strip())
+    query_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_QUERY", "").strip())
+    answer_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_ANSWER", "").strip())
+    sql_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_SQL", "").strip())
+    retrieved_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_RETRIEVED", "").strip())
+    relevant_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_RELEVANT", "").strip())
+    type_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_TYPE", "").strip())
+    keywords_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_KEYWORDS", "").strip())
+    reference_answer_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_REFERENCE_ANSWER", "").strip())
+    k_column: str = field(default_factory=lambda: os.getenv("EVAL_COL_K", "").strip())
+
+    def mapping(self) -> dict[str, str]:
+        pairs = (
+            (self.query_column, "query"),
+            (self.answer_column, "answer"),
+            (self.sql_column, "sql"),
+            (self.retrieved_column, "retrieved"),
+            (self.relevant_column, "relevant"),
+            (self.type_column, "type"),
+            (self.keywords_column, "expected_keywords"),
+            (self.reference_answer_column, "reference_answer"),
+            (self.k_column, "k"),
+        )
+        return {src: dst for src, dst in pairs if src}
+
+    def list_columns(self) -> list[str]:
+        columns = []
+        if self.retrieved_column:
+            columns.append("retrieved")
+        if self.relevant_column:
+            columns.append("relevant")
+        if self.keywords_column:
+            columns.append("expected_keywords")
+        return columns
+
+
+def get_source_config() -> EvalSourceConfig:
+    return EvalSourceConfig()
+
+
 db = DBConfig()
 thresholds = EvalThresholds()

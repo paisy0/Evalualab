@@ -2,13 +2,17 @@ class EvalLabError(Exception):
     pass
 
 
+class ConfigurationError(EvalLabError):
+    pass
+
+
 class ConnectionFailed(EvalLabError):
     def __init__(self, db_type: str, host: str, port: int, reason: str):
         self.db_type = db_type
         self.host = host
         self.port = port
         super().__init__(
-            f"{db_type} connection failed → {host}:{port}. "
+            f"{db_type} connection failed -> {host}:{port}. "
             f"Check .env credentials. Reason: {reason}"
         )
 
@@ -16,7 +20,7 @@ class ConnectionFailed(EvalLabError):
 class QueryFailed(EvalLabError):
     def __init__(self, query_preview: str, reason: str):
         self.query_preview = query_preview
-        super().__init__(f"Query failed: {reason}\n  → {query_preview}")
+        super().__init__(f"Query failed: {reason}\n  -> {query_preview}")
 
 
 class NotConnected(EvalLabError):
@@ -38,6 +42,4 @@ class UnknownLoader(EvalLabError):
 class UnknownEvalType(EvalLabError):
     def __init__(self, eval_type: str, query: str = "?"):
         self.eval_type = eval_type
-        super().__init__(
-            f"No evaluator for type '{eval_type}' (query: '{query}')"
-        )
+        super().__init__(f"Unknown eval type: {eval_type}")

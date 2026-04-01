@@ -1,4 +1,4 @@
-## Şu An Neyi Ölçüyor?
+## AI Eval Lab
 
 | Evaluator | Metrics |
 | :--- | :--- |
@@ -6,47 +6,50 @@
 | **SQL** | Syntax validity · keyword presence |
 | **Text** | Keyword coverage · answer length · consistency |
 
----
-🗺️ Yol Haritası
+### Setup
 
-[x] Retrieval, SQL, text evaluators + DB loader + reporter
-
-[ ] Synthetic test data generation (RAGAS TestsetGenerator)
-
-[ ] NDCG & MRR deep dive, embedding-based similarity
-
-[ ] LLM-as-Judge (hallucination detection, quality scoring)
-
-[ ] Consistency & adversarial eval
-
-[ ] Observability (Langfuse), regression eval, full pipeline
-
-[ ] CI/CD integration (Promptfoo), A/B testing, DeepEval (oralara gelirsek inş :D)
-
----
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-python main.py
 ```
 
-Gerçek DB'ye bağlan:
+Fill `.env` with:
+
+```env
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+EVAL_SOURCE_QUERY=
+EVAL_COL_QUERY=
+EVAL_COL_ANSWER=
+EVAL_COL_SQL=
+EVAL_COL_RETRIEVED=
+EVAL_COL_RELEVANT=
+EVAL_COL_TYPE=
+EVAL_COL_KEYWORDS=
+EVAL_COL_REFERENCE_ANSWER=
+EVAL_COL_K=
+```
+
+### Run
+
 ```bash
 python main.py --db postgres
-python main.py --db pg              # postgres kısaltması
-python main.py --db mysql --query "SELECT * FROM eval_log LIMIT 100"
-python main.py --no-save            # CSV/JSON export yapmaz
+python main.py --db pg
+python main.py --db mysql
+python main.py --db postgres --query "SELECT * FROM eval_log LIMIT 100"
+python main.py --db postgres --no-save
 ```
----
 
-main.py'deki mapping'i şemaya uygun olarak değiştir:
+`query` and `type` are required for every row.
 
-mapping = {
-    "user_question":    "query",
-    "system_response":  "answer",
-    "generated_sql":    "sql",
-    "source_doc_ids":   "retrieved_docs",
-    "relevant_doc_ids": "relevant_docs",
-    "eval_type":        "type",
-    "keywords":         "expected_keywords",
-}
+For `retrieval` rows:
+- `retrieved` and `relevant` mappings are required.
+
+For `sql` rows:
+- `sql` mapping is required.
+
+For `text` rows:
+- `answer` mapping is required.

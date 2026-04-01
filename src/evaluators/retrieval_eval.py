@@ -42,8 +42,8 @@ def run_retrieval_eval(
     precision_threshold: float | None = None,
     recall_threshold: float | None = None,
 ) -> dict:
-    p_min = precision_threshold or thresholds.precision_min
-    r_min = recall_threshold or thresholds.recall_min
+    p_min = thresholds.precision_min if precision_threshold is None else precision_threshold
+    r_min = thresholds.recall_min if recall_threshold is None else recall_threshold
     relevant_set = set(relevant)
 
     p = precision_at_k(retrieved, relevant_set, k)
@@ -51,10 +51,10 @@ def run_retrieval_eval(
     n = ndcg_at_k(retrieved, relevant_set, k)
 
     return {
-        "query":       query,
+        "query": query,
         "precision_k": round(p, 4),
-        "recall_k":    round(r, 4),
-        "ndcg_k":      round(n, 4),
-        "k":           k,
-        "passed":      p >= p_min and r >= r_min,
+        "recall_k": round(r, 4),
+        "ndcg_k": round(n, 4),
+        "k": k,
+        "passed": p >= p_min and r >= r_min,
     }

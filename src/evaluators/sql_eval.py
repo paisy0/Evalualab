@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import sqlglot
 from sqlglot import exp
 
@@ -37,9 +39,16 @@ def check_sql_syntax(sql: str) -> dict:
     return {"valid": True, "error": None}
 
 
+def _contains_keyword(sql: str, keyword: str) -> bool:
+    parts = [re.escape(part) for part in keyword.strip().split() if part.strip()]
+    if not parts:
+        return True
+    pattern = r"(?<![A-Z0-9_])" + r"\s+".join(parts) + r"(?![A-Z0-9_])"
+    return re.search(pattern, sql, flags=re.IGNORECASE) is not None
+
+
 def check_sql_keywords(sql: str, expected: list[str]) -> dict:
-    upper = sql.upper()
-    missing = [kw for kw in expected if kw.upper() not in upper]
+    missing = [kw for kw in expected if not _contains_keyword(sql, kw)]
     return {
         "all_present": len(missing) == 0,
         "missing": missing,
@@ -55,11 +64,11 @@ def run_sql_eval(
     keywords = check_sql_keywords(sql, expected_keywords or [])
 
     return {
-        "query":            query,
-        "sql":              sql,
-        "syntax_valid":     syntax["valid"],
-        "syntax_error":     syntax["error"],
-        "keywords_ok":      keywords["all_present"],
+        "query": query,
+        "sql": sql,
+        "syntax_valid": syntax["valid"],
+        "syntax_error": syntax["error"],
+        "keywords_ok": keywords["all_present"],
         "missing_keywords": keywords["missing"],
-        "passed":           syntax["valid"] and keywords["all_present"],
+        "passed": syntax["valid"] and keywords["all_present"],
     }
