@@ -39,7 +39,6 @@ python main.py --no-save            # CSV/JSON export yapmaz
 ```
 ---
 
-⚙️ DB Column Mapping
 main.py'deki mapping'i şemaya uygun olarak değiştir:
 
 mapping = {
