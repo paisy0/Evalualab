@@ -23,7 +23,7 @@ Bu aşamada baktığı metrikler:
 
 - Hiçbir şey üretmez. Yani bir LLM'e bağlanıp cevap almaz, veritabanında SQL sorgusu çalıştırıp sonuç üretmez. Asıl sistem bir soruya cevap verdiyse, bir SQL generate ettiyse veya RAG sistemin bazı dokümanlar getirdiyse; bu araç sadece o kayıtları DB'den veya bir JSON/CSV'den okur, kendi kurallarından geçirir ve sisteme "şunlarda başarılısın, şunlarda rezilsin" diyen bir karne çıkartır.
 
-- Hatasızlığa Zorlar. Kolon eksikse ya da tanımlar bozuksa geçip "0 aldı" demek yerine direkt sistemi patlatıp hatayı gösteriyor (src/exceptions.py), bu da false-positive değerlendirmelerin önüne geçer(?).
+- Hatasızlığa Zorlar. Kolon eksikse ya da tanımlar bozuksa geçip "0 aldı" demek yerine direkt sistemi patlatıp hatayı gösteriyor, bu da false-positive değerlendirmelerin önüne geçer(?).
 
 - SQL evaluation syntax ve keyword bazlıdır, result-set bazlı değildir.
 
