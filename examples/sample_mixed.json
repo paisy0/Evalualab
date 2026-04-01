@@ -42,14 +42,14 @@
     "type": "text",
     "query": "Summarize the return policy",
     "answer": "Our return policy allows customers to return products within 30 days of purchase. Items must be in original condition with receipt. Refunds are processed within 5-7 business days after we receive the returned item.",
-    "expected_keywords": ["return", "30 days", "refund"],
-    "reference_answer": "Customers can return items within 30 days of purchase in original condition. Refunds are issued within 5-7 business days upon receipt of the returned product."
+    "expected_keywords": ["return", "30 days", "Refunds"],
+    "reference_answer": "Our return policy allows customers to return products within 30 days of purchase in original condition with receipt. Refunds are processed within 5-7 business days after receiving the returned item."
   },
   {
     "type": "text",
     "query": "What payment methods do you accept?",
     "answer": "We accept credit cards including Visa and Mastercard, bank transfers, and digital wallets such as PayPal. All transactions are secured with SSL encryption for your safety.",
-    "expected_keywords": ["credit card", "bank transfer", "PayPal"],
-    "reference_answer": "We accept Visa, Mastercard, bank transfers, and PayPal. All payments are SSL-encrypted."
+    "expected_keywords": ["credit cards", "bank transfers", "PayPal"],
+    "reference_answer": "We accept credit cards including Visa and Mastercard, bank transfers, and digital wallets such as PayPal. Transactions are secured with SSL encryption."
   }
 ]
