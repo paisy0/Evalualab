@@ -1,10 +1,6 @@
-# AI Eval Lab
+# AI Eval Pipeline MVP'ish
 
-Database içinde tutulan AI system output'ları için hafif bir evaluation pipeline.
-
-Bu repository answer, SQL veya retrieval result üretmez. Database içinde zaten var olan satırları okur, evaluate eder ve report üretir.
-
-## Mevcut Kapsam
+## Geliştirme Aşamasında-
 
 Şu an olanlar:
 
@@ -22,6 +18,21 @@ Bu aşamada baktığı metrikler:
 | **Retrieval** | Precision@K, Recall@K, NDCG@K |
 | **SQL** | Syntax validity, keyword presence |
 | **Text** | Keyword coverage, answer length, consistency |
+
+## Kısıtlar ve BUG veya featurelar :D
+
+- Hiçbir şey üretmez. Yani bir LLM'e bağlanıp cevap almaz, veritabanında SQL sorgusu çalıştırıp sonuç üretmez. Asıl sistem bir soruya cevap verdiyse, bir SQL generate ettiyse veya RAG sistemin bazı dokümanlar getirdiyse; bu araç sadece o kayıtları DB'den veya bir JSON/CSV'den okur, kendi kurallarından geçirir ve sisteme "şunlarda başarılısın, şunlarda rezilsin" diyen bir karne çıkartır.
+- Hatasızlığa Zorlar. Kolon eksikse ya da tanımlar bozuksa geçip "0 aldı" demek yerine direkt sistemi patlatıp hatayı gösteriyor (src/exceptions.py), bu da false-positive değerlendirmelerin önüne geçer(?).
+- SQL evaluation syntax ve keyword bazlıdır, result-set bazlı değildir.
+- Text consistency, reference answer column'una bağlıdır (varsa).
+- Retrieval quality, database içindeki retrieved ve relevant doc ID'lerinin doğruluğuna bağlıdır.
+- Metin Değerlendirmesi Fazla İlkel (Lexical vs. Semantic): text_eval içinde kullanılan difflib.SequenceMatcher sadece harf ve kelime eşleşmesine bakar.
+Örn. Referans: "Sunucu çöktü."
+Yapay Zekanın Cevabı: "Server kapandı."
+SequenceMatcher bu ikisini tamamen farklı görüp FAIL verebilir.
+-Modern pipeline'larda metin tutarlılığı (consistency), LLM as a Judge kullanılarak anlamsal olarak yapıyormuş, ben nasıl yapabilirim bakacağım.
+-SQL Değerlendirmesi Execution (Çalıştırma) Yapmıyor: Araç sadece "SELECT id FROM uyeler" doğru bir SQL syntax'ı mı? diye bakıyor. Asıl veritabanında id diye bir kolon var mı veya çalıştırıldığında hata veriyor mu kontrol edemiyor. Doğruluk (Accuracy) denetimi yok, sadece şekil denetimi var.
+-Eğer testlerin hiçbiri geçemezse bile kodun sonunda süreç Exit Code 0 ile sorunsuzmuş gibi kapanıyor.
 
 ## Quick Start
 
@@ -75,7 +86,7 @@ Evaluate edilen system output örnekleri:
 - SQL output: generate edilmiş SQL query
 - Text output: generate edilmiş answer text
 
-Bu row'ları hem database üzerinden hem de doğrudan JSON/CSV file üzerinden verebilirsin.
+Bu row'ları hem database üzerinden hem de doğrudan JSON/CSV file üzerinden verebiliriz.
 
 ## Proje Yapısı
 
@@ -217,7 +228,7 @@ doc_1,doc_2
 
 ## Örnek Mapping
 
-Eğer tablonda şu kolonlar varsa:
+Eğer tabloda şu kolonlar varsa:
 
 - `user_question`
 - `system_response`
@@ -374,8 +385,8 @@ JSON örneği:
   },
   {
     "type": "sql",
-    "query": "Total sales in 2024",
-    "sql": "SELECT SUM(amount) FROM sales WHERE year = 2024",
+    "query": "Total sales in 2026",
+    "sql": "SELECT SUM(amount) FROM sales WHERE year = 2026",
     "expected_keywords": ["SELECT", "SUM", "FROM", "WHERE"]
   },
   {
@@ -392,7 +403,7 @@ CSV örneği:
 
 ```csv
 type,query,sql,expected_keywords
-sql,Total sales in 2024,"SELECT SUM(amount) FROM sales WHERE year = 2024","SELECT,SUM,FROM,WHERE"
+sql,Total sales in 2026,"SELECT SUM(amount) FROM sales WHERE year = 2026","SELECT,SUM,FROM,WHERE"
 ```
 
 JSON/CSV input için gerekli field'lar yukarıdaki row contract ile aynıdır.
@@ -418,23 +429,3 @@ Tüm testleri çalıştırmak için:
 ```bash
 python -m pytest tests -q
 ```
-
-## Kısıtlar
-
-Bu repo şu aşamada bilinçli olarak dar kapsamlı tutuldu.
-
-- Output'ları evaluate eder; output üretmez.
-- SQL evaluation syntax ve keyword bazlıdır, result-set bazlı değildir.
-- Text consistency, reference answer column'una bağlıdır (varsa).
-- Retrieval quality, database içindeki retrieved ve relevant doc ID'lerinin doğruluğuna bağlıdır.
-
-## Özet
-
-Bu proje şu anda bir evaluator pipeline MVP'si.
-
-Şunlar için iyi bir temel sağlar:
-
-- retrieval output'larını skorlamak
-- generated SQL'in shape ve required structure tarafını kontrol etmek
-- generated text answer'ları skorlamak
-- database-backed daha büyük bir evaluation platform inşa etmek
