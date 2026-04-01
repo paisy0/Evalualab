@@ -6,6 +6,7 @@ import sqlite3
 from src.config import db as db_cfg
 from src.exceptions import ConnectionFailed, NotConnected, QueryFailed
 from src.loaders.base_loader import BaseLoader
+from src.path_utils import display_path
 
 __all__ = ["SQLiteLoader"]
 log = logging.getLogger(__name__)
@@ -24,9 +25,9 @@ class SQLiteLoader(BaseLoader):
             self._conn = sqlite3.connect(db_cfg.sqlite_path, timeout=db_cfg.timeout)
             self._conn.row_factory = sqlite3.Row
             self._cur = self._conn.cursor()
-            log.info("sqlite connected -> %s", db_cfg.sqlite_path)
+            log.info("sqlite connected -> %s", display_path(db_cfg.sqlite_path))
         except sqlite3.Error as e:
-            raise ConnectionFailed("sqlite", db_cfg.sqlite_path, None, str(e)) from e
+            raise ConnectionFailed("sqlite", display_path(db_cfg.sqlite_path), None, str(e)) from e
 
     def close(self) -> None:
         for resource in (self._cur, self._conn):

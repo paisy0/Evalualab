@@ -6,6 +6,7 @@ from pathlib import Path
 
 from src.exceptions import ConfigurationError
 from src.loaders.normalizer import to_list
+from src.path_utils import display_path
 
 __all__ = ["load_json_cases", "load_csv_cases"]
 
@@ -32,7 +33,9 @@ def _read_json_payload(path: Path):
     try:
         return json.loads(path.read_text(encoding="utf-8-sig"))
     except FileNotFoundError as e:
-        raise ConfigurationError(f"Input file not found: {path}") from e
+        raise ConfigurationError(f"Input file not found: {display_path(path)}") from e
+    except UnicodeDecodeError as e:
+        raise ConfigurationError("Invalid JSON encoding.") from e
     except json.JSONDecodeError as e:
         raise ConfigurationError(f"Invalid JSON: {e.msg}") from e
 
@@ -57,4 +60,8 @@ def load_csv_cases(path: str) -> list[dict]:
                 raise ConfigurationError("CSV input must include a header row.")
             return _normalize_case_rows(list(reader))
     except FileNotFoundError as e:
-        raise ConfigurationError(f"Input file not found: {path}") from e
+        raise ConfigurationError(f"Input file not found: {display_path(path)}") from e
+    except UnicodeDecodeError as e:
+        raise ConfigurationError("Invalid CSV encoding.") from e
+    except csv.Error as e:
+        raise ConfigurationError(f"Invalid CSV: {e}") from e

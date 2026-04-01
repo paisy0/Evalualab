@@ -5,6 +5,7 @@ import pytest
 from src.exceptions import ConfigurationError
 from src.loaders.file_loader import load_csv_cases, load_json_cases
 from src.loaders.normalizer import normalize
+from src.path_utils import display_path
 
 
 def test_normalize_drops_unmapped_columns_when_requested():
@@ -94,3 +95,9 @@ def test_load_json_cases_rejects_invalid_shape(tmp_path):
 
     with pytest.raises(ConfigurationError, match="JSON input must be a list of rows."):
         load_json_cases(str(path))
+
+
+def test_display_path_hides_absolute_parent_directories():
+    shown = display_path(r"C:\Users\secret\Desktop\private\cases.json")
+
+    assert shown == "cases.json"

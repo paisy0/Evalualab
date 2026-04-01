@@ -9,6 +9,7 @@ from src.config import get_source_config
 from src.evaluators import run_retrieval_eval, run_sql_eval, run_text_eval
 from src.exceptions import ConfigurationError, EvalLabError, UnknownEvalType
 from src.loaders.normalizer import to_list
+from src.path_utils import display_path
 from src.pipeline import run_report
 
 logging.basicConfig(
@@ -216,7 +217,7 @@ def _load_from_db(db_type: str, query: str | None = None) -> list[dict]:
 def _load_from_json(path: str) -> list[dict]:
     from src.loaders import load_json_cases
 
-    log.info("loading from json -> %s", path)
+    log.info("loading from json -> %s", display_path(path))
     cases = load_json_cases(path)
     log.info("loaded %d rows", len(cases))
     return cases
@@ -225,7 +226,7 @@ def _load_from_json(path: str) -> list[dict]:
 def _load_from_csv(path: str) -> list[dict]:
     from src.loaders import load_csv_cases
 
-    log.info("loading from csv -> %s", path)
+    log.info("loading from csv -> %s", display_path(path))
     cases = load_csv_cases(path)
     log.info("loaded %d rows", len(cases))
     return cases
