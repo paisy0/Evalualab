@@ -48,8 +48,17 @@ def _contains_keyword(sql: str, keyword: str) -> bool:
 
 
 def check_sql_keywords(sql: str, expected: list[str]) -> dict:
-    missing = [kw for kw in expected if not _contains_keyword(sql, kw)]
+    keywords = [kw.strip() for kw in expected if isinstance(kw, str) and kw.strip()]
+    if not keywords:
+        return {
+            "checked": False,
+            "all_present": False,
+            "missing": [],
+        }
+
+    missing = [kw for kw in keywords if not _contains_keyword(sql, kw)]
     return {
+        "checked": True,
         "all_present": len(missing) == 0,
         "missing": missing,
     }
@@ -68,7 +77,8 @@ def run_sql_eval(
         "sql": sql,
         "syntax_valid": syntax["valid"],
         "syntax_error": syntax["error"],
+        "keywords_checked": keywords["checked"],
         "keywords_ok": keywords["all_present"],
         "missing_keywords": keywords["missing"],
-        "passed": syntax["valid"] and keywords["all_present"],
+        "passed": syntax["valid"] and keywords["checked"] and keywords["all_present"],
     }

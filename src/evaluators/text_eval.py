@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from difflib import SequenceMatcher
 
 from src.config import thresholds
@@ -12,10 +13,25 @@ __all__ = [
 ]
 
 
+def _contains_keyword(text: str, keyword: str) -> bool:
+    parts = [re.escape(part) for part in keyword.strip().split() if part.strip()]
+    if not parts:
+        return False
+    pattern = r"(?<![A-Z0-9_])" + r"\s+".join(parts) + r"(?![A-Z0-9_])"
+    return re.search(pattern, text, flags=re.IGNORECASE) is not None
+
+
 def check_keywords(answer: str, expected: list[str]) -> dict:
-    lower = answer.lower()
-    missing = [kw for kw in expected if kw.lower() not in lower]
-    return {"all_present": len(missing) == 0, "missing": missing}
+    keywords = [kw.strip() for kw in expected if isinstance(kw, str) and kw.strip()]
+    if not keywords:
+        return {"checked": False, "all_present": False, "missing": []}
+
+    missing = [kw for kw in keywords if not _contains_keyword(answer, kw)]
+    return {
+        "checked": True,
+        "all_present": len(missing) == 0,
+        "missing": missing,
+    }
 
 
 def check_length(
@@ -58,15 +74,18 @@ def run_text_eval(
         if reference_answer not in (None, "")
         else None
     )
-    consistency_ok = None if consistency is None else consistency["consistent"]
+    consistency_checked = consistency is not None
+    consistency_ok = False if consistency is None else consistency["consistent"]
 
     return {
         "query": query,
+        "keywords_checked": kw["checked"],
         "keywords_ok": kw["all_present"],
         "missing_keywords": kw["missing"],
         "length_ok": ln["length_ok"],
         "word_count": ln["word_count"],
+        "consistency_checked": consistency_checked,
         "consistency_ok": consistency_ok,
         "consistency_score": None if consistency is None else consistency["similarity"],
-        "passed": kw["all_present"] and ln["length_ok"] and (consistency_ok is not False),
+        "passed": kw["checked"] and kw["all_present"] and ln["length_ok"] and consistency_checked and consistency_ok,
     }

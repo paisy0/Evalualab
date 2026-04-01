@@ -8,6 +8,7 @@ import sys
 from src.config import get_source_config
 from src.evaluators import run_retrieval_eval, run_sql_eval, run_text_eval
 from src.exceptions import ConfigurationError, EvalLabError, UnknownEvalType
+from src.loaders.normalizer import to_list
 from src.pipeline import run_report
 
 logging.basicConfig(
@@ -44,6 +45,8 @@ def _require_list(case: dict, *keys: str) -> list:
         raise ConfigurationError(f"Missing field: {keys[0]}")
     if not isinstance(value, list):
         raise ConfigurationError(f"Invalid field: {keys[0]}")
+    if not value:
+        raise ConfigurationError(f"Missing field: {keys[0]}")
     return value
 
 
@@ -52,11 +55,16 @@ def _get_k(case: dict, default: int = 5) -> int:
     if value in (None, ""):
         return default
     if isinstance(value, int):
+        if value <= 0:
+            raise ConfigurationError(f"Invalid k value: {value!r}")
         return value
     try:
-        return int(value)
+        parsed = int(value)
     except (TypeError, ValueError) as e:
         raise ConfigurationError(f"Invalid k value: {value!r}") from e
+    if parsed <= 0:
+        raise ConfigurationError(f"Invalid k value: {value!r}")
+    return parsed
 
 
 _DISPATCH = {
@@ -94,6 +102,14 @@ def _require_source_text(row: dict, column: str) -> str:
     return text
 
 
+def _require_source_list(row: dict, column: str) -> list:
+    _require_source_column(row, column)
+    values = to_list(row[column])
+    if not values:
+        raise ConfigurationError(f"Missing field: {column}")
+    return values
+
+
 def _validate_source_row(row: dict, source) -> None:
     eval_type = _require_source_text(row, source.type_column).lower()
     _require_source_text(row, source.query_column)
@@ -102,18 +118,27 @@ def _validate_source_row(row: dict, source) -> None:
             raise ConfigurationError("Missing mapping: EVAL_COL_RETRIEVED")
         if not source.relevant_column:
             raise ConfigurationError("Missing mapping: EVAL_COL_RELEVANT")
-        _require_source_column(row, source.retrieved_column)
-        _require_source_column(row, source.relevant_column)
+        _require_source_list(row, source.retrieved_column)
+        _require_source_list(row, source.relevant_column)
         return
     if eval_type == "sql":
         if not source.sql_column:
             raise ConfigurationError("Missing mapping: EVAL_COL_SQL")
+        if not source.keywords_column:
+            raise ConfigurationError("Missing mapping: EVAL_COL_KEYWORDS")
         _require_source_text(row, source.sql_column)
+        _require_source_list(row, source.keywords_column)
         return
     if eval_type == "text":
         if not source.answer_column:
             raise ConfigurationError("Missing mapping: EVAL_COL_ANSWER")
+        if not source.keywords_column:
+            raise ConfigurationError("Missing mapping: EVAL_COL_KEYWORDS")
+        if not source.reference_answer_column:
+            raise ConfigurationError("Missing mapping: EVAL_COL_REFERENCE_ANSWER")
         _require_source_text(row, source.answer_column)
+        _require_source_list(row, source.keywords_column)
+        _require_source_text(row, source.reference_answer_column)
         return
     raise UnknownEvalType(eval_type)
 

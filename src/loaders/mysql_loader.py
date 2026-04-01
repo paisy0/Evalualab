@@ -32,7 +32,7 @@ class MySQLLoader(BaseLoader):
                 connection_timeout=db_cfg.timeout,
             )
             self._cur = self._conn.cursor(dictionary=True)
-            log.info("mysql connected → %s:%s/%s", db_cfg.host, port, db_cfg.name)
+            log.info("mysql connected -> %s:%s/%s", db_cfg.host, port, db_cfg.name)
         except mysql.connector.Error as e:
             raise ConnectionFailed("mysql", db_cfg.host, port, str(e)) from e
 

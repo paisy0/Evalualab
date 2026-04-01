@@ -29,6 +29,7 @@ class DBConfig:
 class EvalThresholds:
     precision_min: float = 0.5
     recall_min: float = 0.5
+    ndcg_min: float = 0.5
     min_answer_words: int = 10
     max_answer_words: int = 500
     consistency_min: float = 0.80

@@ -92,6 +92,70 @@ def test_load_from_db_raises_on_missing_required_column(monkeypatch):
         main._load_from_db("postgres")
 
 
+def test_load_from_db_raises_on_empty_retrieval_value(monkeypatch):
+    monkeypatch.setenv("EVAL_SOURCE_QUERY", "SELECT * FROM real_eval_log")
+    monkeypatch.setenv("EVAL_COL_QUERY", "question_col")
+    monkeypatch.setenv("EVAL_COL_TYPE", "type_col")
+    monkeypatch.setenv("EVAL_COL_RETRIEVED", "retrieved_col")
+    monkeypatch.setenv("EVAL_COL_RELEVANT", "relevant_col")
+
+    rows = [
+        {
+            "question_col": "q",
+            "type_col": "retrieval",
+            "retrieved_col": "",
+            "relevant_col": '["doc_1"]',
+        }
+    ]
+
+    monkeypatch.setattr(src.loaders, "get_loader", lambda db_type: _Loader(rows))
+
+    with pytest.raises(ConfigurationError, match="Missing field: retrieved_col"):
+        main._load_from_db("postgres")
+
+
+def test_load_from_db_raises_on_missing_sql_keywords_mapping(monkeypatch):
+    monkeypatch.setenv("EVAL_SOURCE_QUERY", "SELECT * FROM real_eval_log")
+    monkeypatch.setenv("EVAL_COL_QUERY", "question_col")
+    monkeypatch.setenv("EVAL_COL_TYPE", "type_col")
+    monkeypatch.setenv("EVAL_COL_SQL", "sql_col")
+
+    rows = [
+        {
+            "question_col": "q",
+            "type_col": "sql",
+            "sql_col": "SELECT 1",
+        }
+    ]
+
+    monkeypatch.setattr(src.loaders, "get_loader", lambda db_type: _Loader(rows))
+
+    with pytest.raises(ConfigurationError, match="Missing mapping: EVAL_COL_KEYWORDS"):
+        main._load_from_db("postgres")
+
+
+def test_load_from_db_raises_on_missing_text_reference_mapping(monkeypatch):
+    monkeypatch.setenv("EVAL_SOURCE_QUERY", "SELECT * FROM real_eval_log")
+    monkeypatch.setenv("EVAL_COL_QUERY", "question_col")
+    monkeypatch.setenv("EVAL_COL_TYPE", "type_col")
+    monkeypatch.setenv("EVAL_COL_ANSWER", "answer_col")
+    monkeypatch.setenv("EVAL_COL_KEYWORDS", "keywords_col")
+
+    rows = [
+        {
+            "question_col": "q",
+            "type_col": "text",
+            "answer_col": "answer",
+            "keywords_col": '["answer"]',
+        }
+    ]
+
+    monkeypatch.setattr(src.loaders, "get_loader", lambda db_type: _Loader(rows))
+
+    with pytest.raises(ConfigurationError, match="Missing mapping: EVAL_COL_REFERENCE_ANSWER"):
+        main._load_from_db("postgres")
+
+
 def test_evaluate_raises_on_missing_sql_value(monkeypatch):
     monkeypatch.setattr(main, "run_report", lambda results, save=True: None)
 

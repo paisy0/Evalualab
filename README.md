@@ -1,19 +1,71 @@
-## AI Eval Lab
+# AI Eval Lab
+
+Lightweight evaluation pipeline for AI system outputs stored in a database.
+
+This repository does not generate answers, SQL, or retrieval results. It reads rows that already exist in a database, evaluates them, and produces a report.
+
+## Current Scope
+
+Implemented now:
+
+- Retrieval evaluator
+- SQL evaluator
+- Text evaluator
+- Postgres and MySQL loaders
+- Result reporter
+
+Supported metrics:
 
 | Evaluator | Metrics |
 | :--- | :--- |
-| **Retrieval** | Precision@K · Recall@K · NDCG@K |
-| **SQL** | Syntax validity · keyword presence |
-| **Text** | Keyword coverage · answer length · consistency |
+| **Retrieval** | Precision@K, Recall@K, NDCG@K |
+| **SQL** | Syntax validity, keyword presence |
+| **Text** | Keyword coverage, answer length, consistency |
 
-### Setup
+## What This Repo Does
+
+The pipeline:
+
+1. Connects to Postgres or MySQL.
+2. Runs a source query.
+3. Maps your DB columns into the evaluator schema.
+4. Dispatches each row to the correct evaluator based on `type`.
+5. Prints a dashboard.
+6. Optionally writes CSV and JSON reports under [reports](/C:/Users/ordox/Desktop/ai-eval-lab/reports).
+
+The pipeline evaluates existing outputs.
+
+Examples of evaluated system outputs:
+
+- Retrieval output: retrieved document IDs
+- SQL output: generated SQL query
+- Text output: generated answer text
+
+## Project Structure
+
+- [main.py](/C:/Users/ordox/Desktop/ai-eval-lab/main.py): entry point and evaluator dispatch
+- [src/config.py](/C:/Users/ordox/Desktop/ai-eval-lab/src/config.py): env-based config and thresholds
+- [src/loaders](/C:/Users/ordox/Desktop/ai-eval-lab/src/loaders): DB loaders and row normalization
+- [src/evaluators](/C:/Users/ordox/Desktop/ai-eval-lab/src/evaluators): retrieval, SQL, and text evaluators
+- [src/pipeline/reporter.py](/C:/Users/ordox/Desktop/ai-eval-lab/src/pipeline/reporter.py): dashboard and file exports
+- [tests](/C:/Users/ordox/Desktop/ai-eval-lab/tests): unit tests
+
+## Setup
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Fill `.env` with:
+Optional sanity check:
+
+```bash
+python setup_check.py
+```
+
+## Environment Variables
+
+Copy [.env.example](/C:/Users/ordox/Desktop/ai-eval-lab/.env.example) and fill it:
 
 ```env
 DB_HOST=
@@ -33,13 +85,9 @@ EVAL_COL_REFERENCE_ANSWER=
 EVAL_COL_K=
 ```
 
-### DB Mapping
+## DB Mapping
 
-`EVAL_COL_*` fields are not filled automatically after DB connection.
-
-These fields are used to map your database schema to the pipeline.
-
-Write the database column name on the right side, not the actual data.
+`EVAL_COL_*` values are column names, not real data.
 
 Correct:
 
@@ -58,16 +106,16 @@ EVAL_COL_SQL=SELECT * FROM orders
 
 Meaning of each field:
 
-- `EVAL_SOURCE_QUERY`: SQL query used to fetch rows from the database.
-- `EVAL_COL_QUERY`: Column name that stores the user question.
-- `EVAL_COL_ANSWER`: Column name that stores the text answer.
-- `EVAL_COL_SQL`: Column name that stores the generated SQL.
-- `EVAL_COL_RETRIEVED`: Column name that stores retrieved document IDs.
-- `EVAL_COL_RELEVANT`: Column name that stores relevant document IDs.
-- `EVAL_COL_TYPE`: Column name that stores the evaluation type.
-- `EVAL_COL_KEYWORDS`: Column name that stores expected keywords.
-- `EVAL_COL_REFERENCE_ANSWER`: Column name that stores the reference answer.
-- `EVAL_COL_K`: Column name that stores the `k` value.
+- `EVAL_SOURCE_QUERY`: SQL query used to fetch rows from the database
+- `EVAL_COL_QUERY`: column that stores the user question
+- `EVAL_COL_ANSWER`: column that stores the generated text answer
+- `EVAL_COL_SQL`: column that stores the generated SQL
+- `EVAL_COL_RETRIEVED`: column that stores retrieved document IDs
+- `EVAL_COL_RELEVANT`: column that stores relevant document IDs
+- `EVAL_COL_TYPE`: column that stores the evaluation type
+- `EVAL_COL_KEYWORDS`: column that stores expected keywords
+- `EVAL_COL_REFERENCE_ANSWER`: column that stores the reference answer
+- `EVAL_COL_K`: column that stores the `k` value
 
 Expected values inside the type column:
 
@@ -75,9 +123,53 @@ Expected values inside the type column:
 - `sql`
 - `text`
 
-Example:
+## Row Contract
 
-If your table has these columns:
+Every row must include:
+
+- `query`
+- `type`
+
+For `retrieval` rows:
+
+- retrieved docs
+- relevant docs
+- optional `k`
+
+For `sql` rows:
+
+- generated SQL
+- expected keywords
+
+For `text` rows:
+
+- generated answer
+- expected keywords
+- reference answer
+
+If required mappings or required values are missing, the pipeline fails fast with an error instead of silently producing weak results.
+
+## Accepted List Formats
+
+These fields can be stored either as JSON arrays or comma-separated strings:
+
+- retrieved docs
+- relevant docs
+- expected keywords
+
+Examples:
+
+```text
+["doc_1", "doc_2"]
+```
+
+```text
+doc_1,doc_2
+```
+
+## Example Mapping
+
+If your table contains these columns:
 
 - `user_question`
 - `system_response`
@@ -86,8 +178,10 @@ If your table has these columns:
 - `relevant_doc_ids`
 - `eval_type`
 - `keywords`
+- `gold_answer`
+- `top_k`
 
-Then your `.env` should look like this:
+then your `.env` can look like this:
 
 ```env
 DB_HOST=localhost
@@ -104,18 +198,72 @@ EVAL_COL_RETRIEVED=source_doc_ids
 EVAL_COL_RELEVANT=relevant_doc_ids
 EVAL_COL_TYPE=eval_type
 EVAL_COL_KEYWORDS=keywords
-EVAL_COL_REFERENCE_ANSWER=
-EVAL_COL_K=
+EVAL_COL_REFERENCE_ANSWER=gold_answer
+EVAL_COL_K=top_k
 ```
 
-Required fields:
+## How Evaluation Works
 
-- Always required: `EVAL_SOURCE_QUERY`, `EVAL_COL_QUERY`, `EVAL_COL_TYPE`
-- For `retrieval` rows: `EVAL_COL_RETRIEVED`, `EVAL_COL_RELEVANT`
-- For `sql` rows: `EVAL_COL_SQL`
-- For `text` rows: `EVAL_COL_ANSWER`
+### Retrieval
 
-### Run
+Input:
+
+- query
+- retrieved docs
+- relevant docs
+- optional `k`
+
+Output fields include:
+
+- `precision_k`
+- `recall_k`
+- `ndcg_k`
+- `passed`
+
+### SQL
+
+Input:
+
+- query
+- SQL
+- expected keywords
+
+Output fields include:
+
+- `syntax_valid`
+- `syntax_error`
+- `keywords_checked`
+- `keywords_ok`
+- `missing_keywords`
+- `passed`
+
+Note:
+
+- SQL evaluation checks syntax and required keyword presence.
+- It does not execute the SQL and does not verify semantic correctness of query results.
+
+### Text
+
+Input:
+
+- query
+- answer
+- expected keywords
+- reference answer
+
+Output fields include:
+
+- `keywords_checked`
+- `keywords_ok`
+- `missing_keywords`
+- `length_ok`
+- `word_count`
+- `consistency_checked`
+- `consistency_ok`
+- `consistency_score`
+- `passed`
+
+## Run
 
 ```bash
 python main.py --db postgres
@@ -125,13 +273,54 @@ python main.py --db postgres --query "SELECT * FROM eval_log LIMIT 100"
 python main.py --db postgres --no-save
 ```
 
-`query` and `type` are required for every row.
+## Reports
 
-For `retrieval` rows:
-- `retrieved` and `relevant` mappings are required.
+The reporter prints a small dashboard to stdout and, unless `--no-save` is used, writes:
 
-For `sql` rows:
-- `sql` mapping is required.
+- `reports/eval_results_<timestamp>.csv`
+- `reports/eval_results_<timestamp>.json`
 
-For `text` rows:
-- `answer` mapping is required.
+## Testing
+
+Run all tests:
+
+```bash
+python -m pytest tests -q
+```
+
+Current test status in this workspace: `19 passed`
+
+## Limitations
+
+This repo is intentionally narrow at this stage.
+
+- It evaluates outputs; it does not generate them.
+- SQL evaluation is syntax and keyword based, not result-set based.
+- Text consistency depends on a reference answer column.
+- Retrieval quality depends on the correctness of retrieved and relevant doc IDs stored in the database.
+
+## Roadmap
+
+### Done
+
+- [x] Retrieval, SQL, text evaluators + DB loader + reporter
+
+### Next
+
+- [ ] Synthetic test data generation (RAGAS TestsetGenerator)
+- [ ] NDCG & MRR deep dive, embedding-based similarity
+- [ ] LLM-as-Judge (hallucination detection, quality scoring)
+- [ ] Consistency & adversarial eval
+- [ ] Observability (Langfuse), regression eval, full pipeline
+- [ ] CI/CD integration (Promptfoo), A/B testing, DeepEval
+
+## Summary
+
+This project is currently an evaluator pipeline MVP.
+
+It is a good base for:
+
+- scoring retrieval outputs
+- checking generated SQL shape and required structure
+- scoring generated text answers
+- building a larger evaluation platform on top of DB-backed data

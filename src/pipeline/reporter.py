@@ -25,20 +25,20 @@ def _save_csv(results: list[dict], path: Path) -> None:
         writer.writeheader()
         for row in results:
             writer.writerow({k: row.get(k, "") for k in all_keys})
-    log.info("csv → %s", path)
+    log.info("csv -> %s", path)
 
 
 def _save_json(results: list[dict], path: Path) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2, default=str)
-    log.info("json → %s", path)
+    log.info("json -> %s", path)
 
 
 def _print_dashboard(results: list[dict]) -> None:
-    total  = len(results)
+    total = len(results)
     passed = sum(1 for r in results if r.get("passed") is True)
     failed = total - passed
-    rate   = passed / total if total else 0
+    rate = passed / total if total else 0
 
     print()
     print("=" * 48)
@@ -71,7 +71,7 @@ def run_report(results: list[dict], *, save: bool = True) -> dict | None:
     if not save:
         return None
 
-    csv_path  = _make_path("csv")
+    csv_path = _make_path("csv")
     json_path = _make_path("json")
     _save_csv(results, csv_path)
     _save_json(results, json_path)

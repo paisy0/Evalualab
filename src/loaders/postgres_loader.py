@@ -32,7 +32,7 @@ class PostgresLoader(BaseLoader):
             self._cur = self._conn.cursor(
                 cursor_factory=psycopg2.extras.RealDictCursor
             )
-            log.info("pg connected → %s:%s/%s", db_cfg.host, db_cfg.port, db_cfg.name)
+            log.info("pg connected -> %s:%s/%s", db_cfg.host, db_cfg.port, db_cfg.name)
         except psycopg2.OperationalError as e:
             raise ConnectionFailed("postgres", db_cfg.host, db_cfg.port, str(e)) from e
 
