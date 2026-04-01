@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import json
+
+with open("config.json", "r", encoding="utf-8") as f:
+    config = json.load(f)
+    mapping = config["mapping"]
+    
 from __future__ import annotations
 
 import argparse
