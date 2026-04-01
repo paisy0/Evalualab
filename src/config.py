@@ -19,6 +19,7 @@ class DBConfig:
     name: str = field(default_factory=lambda: os.getenv("DB_NAME", ""))
     user: str = field(default_factory=lambda: os.getenv("DB_USER", ""))
     password: str = field(default_factory=lambda: os.getenv("DB_PASSWORD", ""))
+    sqlite_path: str = field(default_factory=lambda: os.getenv("DB_SQLITE_PATH", "").strip())
     timeout: int = 10
 
     def __repr__(self) -> str:

@@ -169,3 +169,36 @@ def test_evaluate_raises_on_missing_sql_value(monkeypatch):
             ],
             save=False,
         )
+
+
+def test_evaluate_raises_on_missing_sql_keywords(monkeypatch):
+    monkeypatch.setattr(main, "run_report", lambda results, save=True: None)
+
+    with pytest.raises(ConfigurationError, match="Missing field: expected_keywords"):
+        main._evaluate(
+            [
+                {
+                    "type": "sql",
+                    "query": "q",
+                    "sql": "SELECT 1",
+                }
+            ],
+            save=False,
+        )
+
+
+def test_evaluate_raises_on_missing_text_reference_answer(monkeypatch):
+    monkeypatch.setattr(main, "run_report", lambda results, save=True: None)
+
+    with pytest.raises(ConfigurationError, match="Missing field: reference_answer"):
+        main._evaluate(
+            [
+                {
+                    "type": "text",
+                    "query": "q",
+                    "answer": "answer text",
+                    "expected_keywords": ["answer"],
+                }
+            ],
+            save=False,
+        )

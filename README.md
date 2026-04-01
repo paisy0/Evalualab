@@ -1,20 +1,20 @@
 # AI Eval Lab
 
-Lightweight evaluation pipeline for AI system outputs stored in a database.
+Database içinde tutulan AI system outputs için hafif bir evaluation pipeline.
 
-This repository does not generate answers, SQL, or retrieval results. It reads rows that already exist in a database, evaluates them, and produces a report.
+Bu repository answer, SQL veya retrieval result üretmez. Database içinde zaten var olan satırları okur, evaluate eder ve report üretir.
 
-## Current Scope
+## Mevcut Kapsam
 
-Implemented now:
+Şu anda implement edilenler:
 
 - Retrieval evaluator
 - SQL evaluator
 - Text evaluator
-- Postgres and MySQL loaders
+- Postgres, MySQL ve SQLite loader'ları
 - Result reporter
 
-Supported metrics:
+Desteklenen metrics:
 
 | Evaluator | Metrics |
 | :--- | :--- |
@@ -22,42 +22,44 @@ Supported metrics:
 | **SQL** | Syntax validity, keyword presence |
 | **Text** | Keyword coverage, answer length, consistency |
 
-## What This Repo Does
+## Bu Repo Ne Yapar
 
-The pipeline:
+Pipeline şu akışla çalışır:
 
-1. Connects to Postgres or MySQL.
-2. Runs a source query.
-3. Maps your DB columns into the evaluator schema.
-4. Dispatches each row to the correct evaluator based on `type`.
-5. Prints a dashboard.
-6. Optionally writes CSV and JSON reports under [reports](/C:/Users/ordox/Desktop/ai-eval-lab/reports).
+1. Postgres, MySQL veya SQLite'a bağlanır ya da JSON/CSV file okur.
+2. Source query çalıştırır ya da evaluator row'larını file içinden alır.
+3. DB input kullanılıyorsa DB column'larını evaluator schema'ya map eder.
+4. Her row'u `type` alanına göre doğru evaluator'a yollar.
+5. Dashboard basar.
+6. İstenirse [reports](/C:/Users/ordox/Desktop/ai-eval-lab/reports) altına CSV ve JSON report yazar.
 
-The pipeline evaluates existing outputs.
+Pipeline mevcut output'ları evaluate eder.
 
-Examples of evaluated system outputs:
+Evaluate edilen system outputs örnekleri:
 
 - Retrieval output: retrieved document IDs
 - SQL output: generated SQL query
 - Text output: generated answer text
 
-## Project Structure
+Bu row'ları hem database üzerinden hem de doğrudan JSON/CSV file üzerinden verebilirsin.
 
-- [main.py](/C:/Users/ordox/Desktop/ai-eval-lab/main.py): entry point and evaluator dispatch
-- [src/config.py](/C:/Users/ordox/Desktop/ai-eval-lab/src/config.py): env-based config and thresholds
-- [src/loaders](/C:/Users/ordox/Desktop/ai-eval-lab/src/loaders): DB loaders and row normalization
-- [src/evaluators](/C:/Users/ordox/Desktop/ai-eval-lab/src/evaluators): retrieval, SQL, and text evaluators
-- [src/pipeline/reporter.py](/C:/Users/ordox/Desktop/ai-eval-lab/src/pipeline/reporter.py): dashboard and file exports
-- [tests](/C:/Users/ordox/Desktop/ai-eval-lab/tests): unit tests
+## Proje Yapısı
 
-## Setup
+- [main.py](/C:/Users/ordox/Desktop/ai-eval-lab/main.py): entry point ve evaluator dispatch
+- [src/config.py](/C:/Users/ordox/Desktop/ai-eval-lab/src/config.py): env-based config ve thresholds
+- [src/loaders](/C:/Users/ordox/Desktop/ai-eval-lab/src/loaders): DB loader'ları, file loader'ları ve row normalization
+- [src/evaluators](/C:/Users/ordox/Desktop/ai-eval-lab/src/evaluators): retrieval, SQL ve text evaluator'ları
+- [src/pipeline/reporter.py](/C:/Users/ordox/Desktop/ai-eval-lab/src/pipeline/reporter.py): dashboard ve file export
+- [tests](/C:/Users/ordox/Desktop/ai-eval-lab/tests): unit test'ler
+
+## Kurulum
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Optional sanity check:
+İsteğe bağlı sanity check:
 
 ```bash
 python setup_check.py
@@ -65,7 +67,7 @@ python setup_check.py
 
 ## Environment Variables
 
-Copy [.env.example](/C:/Users/ordox/Desktop/ai-eval-lab/.env.example) and fill it:
+[.env.example](/C:/Users/ordox/Desktop/ai-eval-lab/.env.example) dosyasını kopyalayıp doldur:
 
 ```env
 DB_HOST=
@@ -73,6 +75,7 @@ DB_PORT=
 DB_NAME=
 DB_USER=
 DB_PASSWORD=
+DB_SQLITE_PATH=
 EVAL_SOURCE_QUERY=
 EVAL_COL_QUERY=
 EVAL_COL_ANSWER=
@@ -87,9 +90,9 @@ EVAL_COL_K=
 
 ## DB Mapping
 
-`EVAL_COL_*` values are column names, not real data.
+`EVAL_COL_*` alanları gerçek data değil, column name içindir.
 
-Correct:
+Doğru kullanım:
 
 ```env
 EVAL_COL_QUERY=user_question
@@ -97,27 +100,28 @@ EVAL_COL_ANSWER=system_response
 EVAL_COL_SQL=generated_sql
 ```
 
-Wrong:
+Yanlış kullanım:
 
 ```env
 EVAL_COL_QUERY=What is revenue?
 EVAL_COL_SQL=SELECT * FROM orders
 ```
 
-Meaning of each field:
+Alanların anlamı:
 
-- `EVAL_SOURCE_QUERY`: SQL query used to fetch rows from the database
-- `EVAL_COL_QUERY`: column that stores the user question
-- `EVAL_COL_ANSWER`: column that stores the generated text answer
-- `EVAL_COL_SQL`: column that stores the generated SQL
-- `EVAL_COL_RETRIEVED`: column that stores retrieved document IDs
-- `EVAL_COL_RELEVANT`: column that stores relevant document IDs
-- `EVAL_COL_TYPE`: column that stores the evaluation type
-- `EVAL_COL_KEYWORDS`: column that stores expected keywords
-- `EVAL_COL_REFERENCE_ANSWER`: column that stores the reference answer
-- `EVAL_COL_K`: column that stores the `k` value
+- `EVAL_SOURCE_QUERY`: database'den row çekmek için kullanılan SQL query
+- `DB_SQLITE_PATH`: `--db sqlite` kullanıldığında SQLite file path
+- `EVAL_COL_QUERY`: user question tutan column
+- `EVAL_COL_ANSWER`: generated text answer tutan column
+- `EVAL_COL_SQL`: generated SQL tutan column
+- `EVAL_COL_RETRIEVED`: retrieved document IDs tutan column
+- `EVAL_COL_RELEVANT`: relevant document IDs tutan column
+- `EVAL_COL_TYPE`: evaluation type tutan column
+- `EVAL_COL_KEYWORDS`: expected keywords tutan column
+- `EVAL_COL_REFERENCE_ANSWER`: reference answer tutan column
+- `EVAL_COL_K`: `k` value tutan column
 
-Expected values inside the type column:
+`type` column içinde beklenen değerler:
 
 - `retrieval`
 - `sql`
@@ -125,39 +129,39 @@ Expected values inside the type column:
 
 ## Row Contract
 
-Every row must include:
+Her row'da olması gerekenler:
 
 - `query`
 - `type`
 
-For `retrieval` rows:
+`retrieval` row'ları için:
 
 - retrieved docs
 - relevant docs
-- optional `k`
+- opsiyonel `k`
 
-For `sql` rows:
+`sql` row'ları için:
 
 - generated SQL
 - expected keywords
 
-For `text` rows:
+`text` row'ları için:
 
 - generated answer
 - expected keywords
 - reference answer
 
-If required mappings or required values are missing, the pipeline fails fast with an error instead of silently producing weak results.
+Gerekli mapping veya gerekli value eksikse pipeline sessizce zayıf sonuç üretmek yerine fail-fast hata verir.
 
-## Accepted List Formats
+## Kabul Edilen List Format'ları
 
-These fields can be stored either as JSON arrays or comma-separated strings:
+Bu alanlar JSON array ya da comma-separated string olarak tutulabilir:
 
 - retrieved docs
 - relevant docs
 - expected keywords
 
-Examples:
+Örnek:
 
 ```text
 ["doc_1", "doc_2"]
@@ -167,9 +171,9 @@ Examples:
 doc_1,doc_2
 ```
 
-## Example Mapping
+## Örnek Mapping
 
-If your table contains these columns:
+Eğer tablon şu column'lara sahipse:
 
 - `user_question`
 - `system_response`
@@ -181,7 +185,7 @@ If your table contains these columns:
 - `gold_answer`
 - `top_k`
 
-then your `.env` can look like this:
+o zaman `.env` şu şekilde olabilir:
 
 ```env
 DB_HOST=localhost
@@ -202,7 +206,23 @@ EVAL_COL_REFERENCE_ANSWER=gold_answer
 EVAL_COL_K=top_k
 ```
 
-## How Evaluation Works
+SQLite örneği:
+
+```env
+DB_SQLITE_PATH=C:\path\to\eval.sqlite
+EVAL_SOURCE_QUERY=SELECT * FROM eval_log LIMIT 100
+EVAL_COL_QUERY=query_text
+EVAL_COL_ANSWER=answer_text
+EVAL_COL_SQL=generated_sql
+EVAL_COL_RETRIEVED=retrieved_docs
+EVAL_COL_RELEVANT=relevant_docs
+EVAL_COL_TYPE=eval_type
+EVAL_COL_KEYWORDS=expected_keywords
+EVAL_COL_REFERENCE_ANSWER=reference_answer
+EVAL_COL_K=top_k
+```
+
+## Evaluation Nasıl Çalışıyor
 
 ### Retrieval
 
@@ -211,9 +231,9 @@ Input:
 - query
 - retrieved docs
 - relevant docs
-- optional `k`
+- opsiyonel `k`
 
-Output fields include:
+Output field'ları:
 
 - `precision_k`
 - `recall_k`
@@ -228,7 +248,7 @@ Input:
 - SQL
 - expected keywords
 
-Output fields include:
+Output field'ları:
 
 - `syntax_valid`
 - `syntax_error`
@@ -237,10 +257,10 @@ Output fields include:
 - `missing_keywords`
 - `passed`
 
-Note:
+Not:
 
-- SQL evaluation checks syntax and required keyword presence.
-- It does not execute the SQL and does not verify semantic correctness of query results.
+- SQL evaluation syntax ve gerekli keyword presence kontrolü yapar.
+- SQL'i execute etmez ve query result'unun semantic correctness kısmını doğrulamaz.
 
 ### Text
 
@@ -251,7 +271,7 @@ Input:
 - expected keywords
 - reference answer
 
-Output fields include:
+Output field'ları:
 
 - `keywords_checked`
 - `keywords_ok`
@@ -263,49 +283,94 @@ Output fields include:
 - `consistency_score`
 - `passed`
 
-## Run
+## Çalıştırma
 
 ```bash
 python main.py --db postgres
 python main.py --db pg
 python main.py --db mysql
+python main.py --db sqlite
+python main.py --input-json cases.json
+python main.py --input-csv cases.csv
 python main.py --db postgres --query "SELECT * FROM eval_log LIMIT 100"
 python main.py --db postgres --no-save
 ```
 
+`--query` sadece `--db` ile birlikte çalışır.
+
+## File Input Format
+
+`--input-json` veya `--input-csv` kullanıldığında row'lar doğrudan evaluator schema ile gelmelidir.
+
+JSON örneği:
+
+```json
+[
+  {
+    "type": "retrieval",
+    "query": "What is the refund policy?",
+    "retrieved": ["doc_1", "doc_2"],
+    "relevant": ["doc_1"],
+    "k": 2
+  },
+  {
+    "type": "sql",
+    "query": "Total sales in 2024",
+    "sql": "SELECT SUM(amount) FROM sales WHERE year = 2024",
+    "expected_keywords": ["SELECT", "SUM", "FROM", "WHERE"]
+  },
+  {
+    "type": "text",
+    "query": "Summarize the support policy",
+    "answer": "Support is available on weekdays and critical issues are prioritized.",
+    "expected_keywords": ["support", "weekdays", "critical"],
+    "reference_answer": "Support is available during weekdays and urgent issues are prioritized."
+  }
+]
+```
+
+CSV örneği:
+
+```csv
+type,query,sql,expected_keywords
+sql,Total sales in 2024,"SELECT SUM(amount) FROM sales WHERE year = 2024","SELECT,SUM,FROM,WHERE"
+```
+
+JSON/CSV input için gerekli field'lar yukarıdaki row contract ile aynıdır.
+
 ## Reports
 
-The reporter prints a small dashboard to stdout and, unless `--no-save` is used, writes:
+Reporter stdout'a küçük bir dashboard basar ve `--no-save` kullanılmazsa şunları yazar:
 
 - `reports/eval_results_<timestamp>.csv`
 - `reports/eval_results_<timestamp>.json`
 
-## Testing
+## Test
 
-Run all tests:
+Tüm testleri çalıştır:
 
 ```bash
 python -m pytest tests -q
 ```
 
-Current test status in this workspace: `19 passed`
+Bu workspace içindeki güncel test durumu: `25 passed`
 
 ## Limitations
 
-This repo is intentionally narrow at this stage.
+Bu repo şu aşamada bilinçli olarak dar kapsamlı tutuldu.
 
-- It evaluates outputs; it does not generate them.
-- SQL evaluation is syntax and keyword based, not result-set based.
-- Text consistency depends on a reference answer column.
-- Retrieval quality depends on the correctness of retrieved and relevant doc IDs stored in the database.
+- Output'ları evaluate eder; output üretmez.
+- SQL evaluation syntax ve keyword bazlıdır, result-set bazlı değildir.
+- Text consistency, reference answer column'una bağlıdır.
+- Retrieval quality, database içindeki retrieved ve relevant doc ID'lerinin doğruluğuna bağlıdır.
 
 ## Roadmap
 
-### Done
+### Tamamlananlar
 
 - [x] Retrieval, SQL, text evaluators + DB loader + reporter
 
-### Next
+### Sonraki Adımlar
 
 - [ ] Synthetic test data generation (RAGAS TestsetGenerator)
 - [ ] NDCG & MRR deep dive, embedding-based similarity
@@ -314,13 +379,13 @@ This repo is intentionally narrow at this stage.
 - [ ] Observability (Langfuse), regression eval, full pipeline
 - [ ] CI/CD integration (Promptfoo), A/B testing, DeepEval
 
-## Summary
+## Özet
 
-This project is currently an evaluator pipeline MVP.
+Bu proje şu anda bir evaluator pipeline MVP'si.
 
-It is a good base for:
+Şunlar için iyi bir temel sağlar:
 
-- scoring retrieval outputs
-- checking generated SQL shape and required structure
-- scoring generated text answers
-- building a larger evaluation platform on top of DB-backed data
+- retrieval output'larını skorlamak
+- generated SQL'in shape ve required structure tarafını kontrol etmek
+- generated text answer'ları skorlamak
+- database-backed daha büyük bir evaluation platform inşa etmek

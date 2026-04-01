@@ -143,10 +143,31 @@ def _validate_source_row(row: dict, source) -> None:
     raise UnknownEvalType(eval_type)
 
 
+def _validate_case(case: dict) -> None:
+    eval_type = _require_text(case, "type").lower()
+    _require_text(case, "query")
+    if eval_type == "retrieval":
+        _require_list(case, "retrieved", "retrieved_docs")
+        _require_list(case, "relevant", "relevant_docs")
+        _get_k(case)
+        return
+    if eval_type == "sql":
+        _require_text(case, "sql")
+        _require_list(case, "expected_keywords")
+        return
+    if eval_type == "text":
+        _require_text(case, "answer")
+        _require_list(case, "expected_keywords")
+        _require_text(case, "reference_answer")
+        return
+    raise UnknownEvalType(eval_type)
+
+
 def _evaluate(test_cases: list[dict], *, save: bool = True) -> list[dict]:
     results = []
 
     for i, case in enumerate(test_cases, 1):
+        _validate_case(case)
         eval_type = _require_text(case, "type").lower()
         handler = _DISPATCH.get(eval_type)
         if handler is None:
@@ -192,16 +213,47 @@ def _load_from_db(db_type: str, query: str | None = None) -> list[dict]:
     )
 
 
+def _load_from_json(path: str) -> list[dict]:
+    from src.loaders import load_json_cases
+
+    log.info("loading from json -> %s", path)
+    cases = load_json_cases(path)
+    log.info("loaded %d rows", len(cases))
+    return cases
+
+
+def _load_from_csv(path: str) -> list[dict]:
+    from src.loaders import load_csv_cases
+
+    log.info("loading from csv -> %s", path)
+    cases = load_csv_cases(path)
+    log.info("loaded %d rows", len(cases))
+    return cases
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="ai-eval-lab",
         description="Run the AI evaluation pipeline.",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         "--db",
-        choices=["postgres", "pg", "mysql"],
+        choices=["postgres", "pg", "mysql", "sqlite"],
         default=None,
         help="DB type.",
+    )
+    group.add_argument(
+        "--input-json",
+        type=str,
+        default=None,
+        help="Path to a JSON file with evaluator rows.",
+    )
+    group.add_argument(
+        "--input-csv",
+        type=str,
+        default=None,
+        help="Path to a CSV file with evaluator rows.",
     )
     parser.add_argument(
         "--query",
@@ -216,14 +268,19 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if not args.db:
-        log.error("DB type is required.")
+    if (args.input_json or args.input_csv) and args.query:
+        log.error("--query works only with --db.")
         return 1
 
     try:
-        cases = _load_from_db(args.db, args.query)
+        if args.db:
+            cases = _load_from_db(args.db, args.query)
+        elif args.input_json:
+            cases = _load_from_json(args.input_json)
+        else:
+            cases = _load_from_csv(args.input_csv)
     except EvalLabError as e:
-        log.error("DB load failed: %s", e)
+        log.error("Input load failed: %s", e)
         return 1
 
     if not cases:
@@ -231,7 +288,11 @@ def main() -> int:
         return 1
 
     log.info("evaluating %d cases...", len(cases))
-    results = _evaluate(cases, save=not args.no_save)
+    try:
+        results = _evaluate(cases, save=not args.no_save)
+    except EvalLabError as e:
+        log.error("Evaluation failed: %s", e)
+        return 1
 
     passed = sum(1 for r in results if r.get("passed"))
     log.info("done -> %d/%d passed", passed, len(results))
