@@ -23,6 +23,7 @@ Results are printed to the terminal and saved to `reports/` as CSV + JSON.
 
 ---
 🗺️ Yol Haritası
+
 [x] Retrieval, SQL, text evaluators + DB loader + reporter
 
 [ ] Synthetic test data generation (RAGAS TestsetGenerator)
