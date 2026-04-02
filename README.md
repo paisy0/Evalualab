@@ -44,7 +44,7 @@ Bu aşamada baktığı metrikler:
  
 - SQL Değerlendirmesi Execution Yapmıyor: Araç sadece "SELECT id FROM uyeler" doğru bir SQL syntax'ı mı? diye bakıyor. Asıl veritabanında id diye bir kolon var mı veya çalıştırıldığında hata veriyor mu kontrol edemiyor. Doğruluk (Accuracy) denetimi yok, sadece şekil denetimi var.
 
-- Eğer testlerin hiçbiri geçemezse bile kodun sonunda süreç Exit Code 0 ile sorunsuzmuş gibi kapanıyor.
+- Eğer testlerin hiçbiri geçemezse bile kodun sonunda süreç Exit Code 0 ile sorunsuzmuş gibi kapanıyor.(exit code 1 fail gibi bi hata verdireceğim ilerde.)
 
 ## Quick Start
 
