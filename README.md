@@ -1,6 +1,6 @@
 # AI Eval Pipeline MVP'ish
 
-## -güncel durum: metin değerlendirmesini için geliştirme  ve araştırma yapıyorum-
+## -güncel durum: metin değerlendirmesi için geliştirme ve araştırma yapıyorum-
 
 Şu an olanlar:
 
