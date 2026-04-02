@@ -1,6 +1,6 @@
 # AI Eval Pipeline MVP'ish
 
-## Geliştirme Aşamasında-
+## Şu an -Metin değerlendirmesini kısmı- Geliştirme Aşamasında
 
 Şu an olanlar:
 
