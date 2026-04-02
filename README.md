@@ -1,6 +1,6 @@
 # AI Eval Pipeline MVP'ish
 
-## Şu an -Metin değerlendirmesini kısmı- Geliştirme Aşamasında
+## -şu an metin değerlendirmesini için geliştirme  ve araştırma yapıyorum-
 
 Şu an olanlar:
 
