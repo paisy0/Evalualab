@@ -42,7 +42,7 @@ Bu aşamada baktığı metrikler:
 - SQL Değerlendirmesi Execution Yapmıyor: Araç sadece "SELECT id FROM uyeler" doğru bir SQL syntax'ı mı? diye bakıyor. Asıl veritabanında id diye bir kolon var mı veya çalıştırıldığında hata veriyor mu kontrol edemiyor. Doğruluk (Accuracy) denetimi yok, sadece şekil denetimi var.
 
 - ~~Metin Değerlendirmesi Fazla İlkel (Lexical vs. Semantic): text_eval içinde kullanılan difflib.SequenceMatcher sadece harf ve kelime eşleşmesine bakar.~~
-  - ✅ düzeltildi: artık karakter bazlı değil kelime bazlı karşılaştırıyor. hâlâ anlamsal değil ama eskisi kadar mağara adamı da değil.
+  - ✅ iyileştirildi: artık karakter bazlı değil kelime bazlı karşılaştırıyor. hâlâ anlamsal değil ama eskisi kadar mağara adamı da değil.
 
 - ~~Eğer testlerin hiçbiri geçemezse bile kodun sonunda süreç Exit Code 0 ile sorunsuzmuş gibi kapanıyor.~~
   - ✅ düzeltildi: test başarısızsa artık exit 1 dönüyor. ayrıca `--fail-under 80` gibi kullanılabilen bir flag eklendi, pass rate bu yüzdenin altındaysa exit 1 verir, default 100 (herhangi bir failure exit 1 döner).
