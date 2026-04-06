@@ -1,0 +1,10 @@
+# Core
+python-dotenv>=1.0.0
+sqlglot>=20.0.0
+
+# Database drivers
+psycopg2-binary>=2.9.0
+mysql-connector-python>=9.0.0
+
+# Dev / Testing
+pytest>=8.0.0

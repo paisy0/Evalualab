@@ -1,0 +1,55 @@
+[
+  {
+    "type": "retrieval",
+    "query": "What is the company refund policy?",
+    "retrieved": ["doc_refund_v2", "doc_shipping", "doc_refund_v1"],
+    "relevant": ["doc_refund_v1", "doc_refund_v2"],
+    "k": 3
+  },
+  {
+    "type": "retrieval",
+    "query": "How do I reset my password?",
+    "retrieved": ["doc_password_reset", "doc_account_security"],
+    "relevant": ["doc_password_reset"],
+    "k": 2
+  },
+  {
+    "type": "retrieval",
+    "query": "What are the business hours?",
+    "retrieved": ["doc_pricing", "doc_faq"],
+    "relevant": ["doc_hours", "doc_contact"],
+    "k": 3
+  },
+  {
+    "type": "sql",
+    "query": "Total revenue in 2024",
+    "sql": "SELECT SUM(amount) FROM sales WHERE year = 2024",
+    "expected_keywords": ["SELECT", "SUM", "FROM", "WHERE"]
+  },
+  {
+    "type": "sql",
+    "query": "List all active users",
+    "sql": "SELECT user_id, name FROM users WHERE status = 'active' ORDER BY name",
+    "expected_keywords": ["SELECT", "FROM", "WHERE", "ORDER BY"]
+  },
+  {
+    "type": "sql",
+    "query": "Count orders by category",
+    "sql": "SELECT category, COUNT(*) as total FROM orders GROUP BY category",
+    "expected_keywords": ["SELECT", "COUNT", "FROM", "GROUP BY"]
+  },
+  {
+    "type": "text",
+    "query": "Summarize the return policy",
+    "answer": "Our return policy allows customers to return products within 30 days of purchase. Items must be in original condition with receipt. Refunds are processed within 5-7 business days after we receive the returned item.",
+    "expected_keywords": ["return", "30 days", "Refunds"],
+    "reference_answer": "Our return policy allows customers to return products within 30 days of purchase in original condition with receipt. Refunds are processed within 5-7 business days after receiving the returned item."
+  },
+  {
+    "type": "text",
+    "query": "What payment methods do you accept?",
+    "answer": "We accept credit cards including Visa and Mastercard, bank transfers, and digital wallets such as PayPal. All transactions are secured with SSL encryption for your safety.",
+    "expected_keywords": ["credit cards", "bank transfers", "PayPal"],
+    "reference_answer": "We accept credit cards including Visa and Mastercard, bank transfers, and digital wallets such as PayPal. Transactions are secured with SSL encryption."
+  }
+]
