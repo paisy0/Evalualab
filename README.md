@@ -29,8 +29,6 @@ Bu aşamada baktığı metrikler:
 - Text consistency, reference answer column'una bağlıdır (varsa).
 
 - Retrieval quality, database içindeki retrieved ve relevant doc ID'lerinin doğruluğuna bağlıdır.
-- ~~Metin Değerlendirmesi Fazla İlkel (Lexical vs. Semantic): text_eval içinde kullanılan difflib.SequenceMatcher sadece harf ve kelime eşleşmesine bakar.~~
-  - ✅ düzeltildi: artık karakter bazlı değil kelime bazlı karşılaştırıyor. hâlâ anlamsal değil ama eskisi kadar mağara adamı da değil.
 
   ```
   Örn. Referans: "Sunucu çöktü."
@@ -39,12 +37,12 @@ Bu aşamada baktığı metrikler:
 
   SequenceMatcher bu ikisini farklı görüp FAIL verebilir.
 
-- ~~Keyword Matching Token Bazlıdır: Keyword kontrolü tam kelime sınırı (word boundary) kullanırdı ama büyük/küçük harf farkına bakıyordu, yani `"select"` → `"SELECT"` eşleşmiyordu.~~
-  - ✅ düzeltildi: büyük/küçük harf farkı artık yok sayılıyor. ama kök/çekim farkı hâlâ eşleşmiyor, yani `"refund"` ≠ `"refunds"`, keyword yazarken cevaptaki tam formu kullanmak gerekir.
-
 - Modern pipeline'larda metin tutarlılığı (consistency), LLM as a Judge kullanılarak anlamsal olarak yapıyormuş, ben nasıl yapabilirim bakacağım.
 
 - SQL Değerlendirmesi Execution Yapmıyor: Araç sadece "SELECT id FROM uyeler" doğru bir SQL syntax'ı mı? diye bakıyor. Asıl veritabanında id diye bir kolon var mı veya çalıştırıldığında hata veriyor mu kontrol edemiyor. Doğruluk (Accuracy) denetimi yok, sadece şekil denetimi var.
+
+- ~~Metin Değerlendirmesi Fazla İlkel (Lexical vs. Semantic): text_eval içinde kullanılan difflib.SequenceMatcher sadece harf ve kelime eşleşmesine bakar.~~
+  - ✅ düzeltildi: artık karakter bazlı değil kelime bazlı karşılaştırıyor. hâlâ anlamsal değil ama eskisi kadar mağara adamı da değil.
 
 - ~~Eğer testlerin hiçbiri geçemezse bile kodun sonunda süreç Exit Code 0 ile sorunsuzmuş gibi kapanıyor.~~
   - ✅ düzeltildi: test başarısızsa artık exit 1 dönüyor. ayrıca `--fail-under 80` gibi kullanılabilen bir flag eklendi, pass rate bu yüzdenin altındaysa exit 1 verir, default 100 (herhangi bir failure exit 1 döner).
@@ -60,6 +58,10 @@ Bu aşamada baktığı metrikler:
 
 - ~~`run_tests.py` gereksiz script: sadece `pytest tests -q`'yu subprocess ile sarıyordu, doğrudan pytest çalıştırmaktan farkı yoktu.~~
   - ✅ silindi. artık testler için direkt `python -m pytest tests -q` kullanılabilir.
+
+- ~~Keyword Matching Token Bazlıdır: Keyword kontrolü tam kelime sınırı (word boundary) kullanırdı ama büyük/küçük harf farkına bakıyordu, yani `"select"` → `"SELECT"` eşleşmiyordu.~~
+  - ✅ düzeltildi: büyük/küçük harf farkı artık yok sayılıyor. ama kök/çekim farkı hâlâ eşleşmiyor, yani `"refund"` ≠ `"refunds"`, keyword yazarken cevaptaki tam formu kullanmak gerekir.
+
 ## Quick Start
 
 Repo'yu clone'ladıktan sonra hızlıca denemek için:
