@@ -29,14 +29,19 @@ Bu aşamada baktığı metrikler:
 - Text consistency, reference answer column'una bağlıdır (varsa).
 
 - Retrieval quality, database içindeki retrieved ve relevant doc ID'lerinin doğruluğuna bağlıdır.
+<<<<<<< HEAD
 - ~~Metin Değerlendirmesi Fazla İlkel (Lexical vs. Semantic): text_eval içinde kullanılan difflib.SequenceMatcher sadece harf ve kelime eşleşmesine bakar.~~
   - ✅ düzeltildi: artık karakter bazlı değil kelime bazlı karşılaştırıyor. hâlâ anlamsal değil ama eskisi kadar mağara adamı da değil.
+=======
+- Metin Değerlendirmesi Fazla İlkel (Lexical vs. Semantic): text_eval içinde kullanılan difflib.SequenceMatcher sadece harf ve kelime eşleşmesine bakar.
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
 
   ```
   Örn. Referans: "Sunucu çöktü."
   Yapay Zekanın Cevabı: "Server kapandı."
   ```
 
+<<<<<<< HEAD
   SequenceMatcher bu ikisini hâlâ farklı görüp FAIL verebilir.
 
 - ~~Keyword Matching Token Bazlıdır: Keyword kontrolü tam kelime sınırı (word boundary) kullanırdı ama büyük/küçük harf farkına bakıyordu, yani `"select"` → `"SELECT"` eşleşmiyordu.~~
@@ -60,6 +65,18 @@ Bu aşamada baktığı metrikler:
 
 - ~~`run_tests.py` gereksiz script: sadece `pytest tests -q`'yu subprocess ile sarıyordu, doğrudan pytest çalıştırmaktan farkı yoktu.~~
   - ✅ silindi. artık testler için direkt `python -m pytest tests -q` kullanılabilir.
+=======
+  SequenceMatcher bu ikisini tamamen farklı görüp FAIL verebilir.
+
+- Keyword Matching Token Bazlıdır: Keyword kontrolü tam kelime sınırı (word boundary) kullanır. Yani `"refund"` keyword'ü cevaptaki `"Refunds"` ile eşleşmez, `"credit card"` da `"credit cards"` ile eşleşmez. Keyword yazarken cevaptaki tam formu kullanmak gerekir.
+
+- Modern pipeline'larda metin tutarlılığı (consistency), LLM as a Judge kullanılarak anlamsal olarak yapıyormuş, ben nasıl yapabilirim bakacağım.
+ 
+- SQL Değerlendirmesi Execution Yapmıyor: Araç sadece "SELECT id FROM uyeler" doğru bir SQL syntax'ı mı? diye bakıyor. Asıl veritabanında id diye bir kolon var mı veya çalıştırıldığında hata veriyor mu kontrol edemiyor. Doğruluk (Accuracy) denetimi yok, sadece şekil denetimi var.
+
+- Eğer testlerin hiçbiri geçemezse bile kodun sonunda süreç Exit Code 0 ile sorunsuzmuş gibi kapanıyor.(exit code 1 fail gibi bi hata verdireceğim ilerde.)
+
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
 ## Quick Start
 
 Repo'yu clone'ladıktan sonra hızlıca denemek için:
@@ -390,15 +407,21 @@ python main.py --input-json examples/sample_mixed.json
 
 # Report kaydetmeden
 python main.py --db postgres --no-save
+<<<<<<< HEAD
 
 # CI/CD için pass rate threshold'u belirle
 python main.py --input-json cases.json --fail-under 80
+=======
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
 ```
 
 `--query` sadece `--db` ile birlikte çalışır.
 
+<<<<<<< HEAD
 `--fail-under` 0-100 arası bir yüzde alır. default 100 (herhangi bir failure exit 1 döner).
 
+=======
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
 ## File Input Format
 
 `--input-json` veya `--input-csv` kullanıldığında row'lar doğrudan evaluator schema ile gelmelidir.
@@ -452,7 +475,10 @@ Dashboard şunları gösterir:
 - Evaluator türüne göre breakdown
 - Retrieval ortalamaları (avg precision, recall, NDCG)
 - Fail eden case'lerin listesi
+<<<<<<< HEAD
 - ✅ raporların tam dosya yolu artık terminale yazdırılıyor
+=======
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
 
 ## Test
 
@@ -460,4 +486,8 @@ Tüm testleri çalıştırmak için:
 
 ```bash
 python -m pytest tests -q
+<<<<<<< HEAD
 ```                 
+=======
+```
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48

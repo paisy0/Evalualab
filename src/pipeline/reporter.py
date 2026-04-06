@@ -113,9 +113,12 @@ def run_report(results: list[dict], *, save: bool = True) -> dict | None:
     _save_csv(results, csv_path)
     _save_json(results, json_path)
 
+<<<<<<< HEAD
     print(f"  Reports saved:")
     print(f"    CSV  -> {csv_path}")
     print(f"    JSON -> {json_path}")
     print()
 
+=======
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
     return {"csv": display_path(csv_path), "json": display_path(json_path)}

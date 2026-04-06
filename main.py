@@ -166,7 +166,11 @@ def _evaluate(test_cases: list[dict], *, save: bool = True) -> list[dict]:
         eval_type = _require_text(case, "type").lower()
         handler = _DISPATCH.get(eval_type)
         if handler is None:
+<<<<<<< HEAD
             raise UnknownEvalType(eval_type)
+=======
+            raise UnknownEvalType(eval_type, case.get("query", "?"))
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
 
         result = handler(case)
         result["eval_type"] = eval_type
@@ -261,6 +265,7 @@ def main() -> int:
         action="store_true",
         help="Skip CSV/JSON export.",
     )
+<<<<<<< HEAD
     parser.add_argument(
         "--fail-under",
         type=float,
@@ -271,6 +276,8 @@ def main() -> int:
             "Default: 100 (any failure exits non-zero)."
         ),
     )
+=======
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
     args = parser.parse_args()
 
     if (args.input_json or args.input_csv) and args.query:
@@ -300,6 +307,7 @@ def main() -> int:
         return 1
 
     passed = sum(1 for r in results if r.get("passed"))
+<<<<<<< HEAD
     total = len(results)
     pass_rate = (passed / total * 100) if total else 0.0
     log.info("done -> %d/%d passed (%.1f%%)", passed, total, pass_rate)
@@ -311,6 +319,9 @@ def main() -> int:
             args.fail_under,
         )
         return 1
+=======
+    log.info("done -> %d/%d passed", passed, len(results))
+>>>>>>> e5c9149d041f26918e905242a3234353cdd94e48
     return 0
 
 
