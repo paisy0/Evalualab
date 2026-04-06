@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import sqlite3
 
-from src.config import db as db_cfg
+from src.config import get_db_config
 from src.exceptions import ConnectionFailed, NotConnected, QueryFailed
 from src.loaders.base_loader import BaseLoader
 from src.path_utils import display_path
@@ -19,6 +19,7 @@ class SQLiteLoader(BaseLoader):
         self._cur = None
 
     def connect(self) -> None:
+        db_cfg = get_db_config()
         if not db_cfg.sqlite_path:
             raise ConnectionFailed("sqlite", "DB_SQLITE_PATH", None, "Missing value")
         try:

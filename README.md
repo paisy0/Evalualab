@@ -67,6 +67,15 @@ Bu aşamada baktığı metrikler:
 - ~~File input alias eksikliği: JSON/CSV'de `retrieved_docs` veya `relevant_docs` anahtarı kullanılırsa list normalization uygulanmıyor, comma-separated string gelince validation patlar.~~
   - ✅ düzeltildi: `_LIST_COLUMNS` artık `retrieved_docs` ve `relevant_docs` alias'larını da kapsıyor. (`src/loaders/file_loader.py`)
 
+- ~~Duplicate retrieved ID'ler recall ve NDCG'yi 1.0'ın üstüne çıkartabiliyordu: `retrieved=["doc1","doc1"]` ve `relevant=["doc1"]` gelince recall=2.0 dönüyordu.~~
+  - ✅ düzeltildi: `retrieved[:k]` artık deduplicate ediliyor, aynı ID ikinci kez sayılmıyor. (`src/evaluators/retrieval_eval.py`)
+
+- ~~DB loader'ları config'i import anında snapshot alıyordu: `from src.config import db as db_cfg` ile frozen singleton kullanılıyordu.~~
+  - ✅ düzeltildi: loader'lar artık `connect()` çağrısında `get_db_config()` factory'yi kullanıyor. (`postgres_loader.py`, `mysql_loader.py`, `sqlite_loader.py`)
+
+- ~~`--fail-under` sınır kontrolü yoktu: `-1` veya `150` gibi geçersiz değerler sessizce çalışıyordu.~~
+  - ✅ düzeltildi: 0-100 dışında değer gelirse argüman parse sonrası hata verip exit 1 dönüyor. (`main.py`)
+
 ## Quick Start
 
 Repo'yu clone'ladıktan sonra hızlıca denemek için:

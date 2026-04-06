@@ -267,6 +267,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if not (0.0 <= args.fail_under <= 100.0):
+        log.error("--fail-under must be between 0 and 100, got %s", args.fail_under)
+        return 1
+
     if (args.input_json or args.input_csv) and args.query:
         log.error("--query works only with --db.")
         return 1

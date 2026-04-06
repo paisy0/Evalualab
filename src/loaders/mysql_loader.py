@@ -4,7 +4,7 @@ import logging
 
 import mysql.connector
 
-from src.config import db as db_cfg
+from src.config import get_db_config
 from src.exceptions import ConnectionFailed, NotConnected, QueryFailed
 from src.loaders.base_loader import BaseLoader
 
@@ -19,6 +19,7 @@ class MySQLLoader(BaseLoader):
         self._cur = None
 
     def connect(self) -> None:
+        db_cfg = get_db_config()
         port = db_cfg.mysql_port
         if not db_cfg.name:
             raise ConnectionFailed("mysql", db_cfg.host, port, "DB_NAME is not set in .env")

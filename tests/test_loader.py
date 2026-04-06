@@ -4,11 +4,11 @@ import pytest
 
 from src.config import DBConfig
 from src.exceptions import UnknownLoader
+from src.loaders import sqlite_loader
 from src.loaders.loader_factory import get_loader
 from src.loaders.mysql_loader import MySQLLoader
 from src.loaders.normalizer import normalize
 from src.loaders.postgres_loader import PostgresLoader
-from src.loaders import sqlite_loader
 from src.loaders.sqlite_loader import SQLiteLoader
 
 
@@ -67,8 +67,8 @@ def test_sqlite_loader_fetches_rows(tmp_path, monkeypatch):
 
     monkeypatch.setattr(
         sqlite_loader,
-        "db_cfg",
-        DBConfig(sqlite_path=str(db_path)),
+        "get_db_config",
+        lambda: DBConfig(sqlite_path=str(db_path)),
     )
 
     with SQLiteLoader() as db:

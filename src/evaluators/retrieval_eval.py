@@ -10,21 +10,22 @@ __all__ = ["run_retrieval_eval", "precision_at_k", "recall_at_k", "ndcg_at_k"]
 def precision_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
     if k <= 0:
         return 0.0
-    top_k = retrieved[:k]
+    top_k = list(dict.fromkeys(retrieved[:k]))
     return sum(1 for doc in top_k if doc in relevant) / k
 
 
 def recall_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
     if not relevant:
         return 0.0
-    top_k = retrieved[:k]
+    top_k = list(dict.fromkeys(retrieved[:k]))
     return sum(1 for doc in top_k if doc in relevant) / len(relevant)
 
 
 def ndcg_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
+    top_k = list(dict.fromkeys(retrieved[:k]))
     dcg = sum(
         1.0 / math.log2(i + 2)
-        for i, doc in enumerate(retrieved[:k])
+        for i, doc in enumerate(top_k)
         if doc in relevant
     )
     ideal = sum(
