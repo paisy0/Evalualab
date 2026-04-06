@@ -50,7 +50,7 @@ Bu aşamada baktığı metrikler:
 - ~~Regex lookbehind sorunu: keyword kontrolü `[A-Z0-9_]` kullanıyordu, `re.IGNORECASE` lookbehind'ı etkilemediği için küçük harfli kelimelerin içinde yanlış eşleşme yapıyordu. (`"preselect"` içinde `"select"` buluyordu örneğin.)~~
   - ✅ düzeltildi: `[A-Za-z0-9_]` olarak güncellendi. (`sql_eval.py`, `text_eval.py`)
 
-- `check_sql_keywords()` boş keyword listesi: `all_present: False` döner, `checked: False` ile birlikte. yani "kontrol edilmedi" anlamına gelir. pipeline zaten `checked` flag'ine baktığı için pratikte sorun yaratmıyor.
+- `check_sql_keywords()` boş keyword listesi: `all_present: False` döner, `checked: False`. yani "kontrol edilmedi" anlamına gelir. pipeline zaten `checked` flag'ine baktığı için pratikte sorun yaratmıyor.
 
 - ~~`UnknownEvalType` boş parametre: `query` parametresi alıyordu ama hata mesajında hiç kullanmıyordu.~~
   - ✅ düzeltildi: boş parametre kaldırıldı. (`src/exceptions.py`)
